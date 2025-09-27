@@ -1,4 +1,4 @@
-# Icecap Agent
+# icecap-agent
 
 Icecap Agent is a **32-bit injectable DLL** for World of Warcraft 3.3.5a that executes commands and publishes events as part of the Icecap ecosystem. The agent runs inside the WoW client process and communicates over a lightweight TCP protocol using Protocol Buffers.
 
