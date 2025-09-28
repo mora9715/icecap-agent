@@ -65,7 +65,7 @@ bool CommandExecutor::executeClickToMove(uintptr_t playerBaseAddress, const icec
     }
 
     try {
-        float pos[3] = {position.x(), position.y(), position.z()};
+        float pos[3] = {position.y(), position.x(), position.z()};
 
         LOG_DEBUG("CommandExecutor: ClickToMove position: (" + std::to_string(pos[0]) + ", " + std::to_string(pos[1]) +
                   ", " + std::to_string(pos[2]) + ")");

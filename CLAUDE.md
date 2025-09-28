@@ -8,10 +8,19 @@ This is the **Icecap Agent**, a 32-bit injectable DLL for World of Warcraft clie
 
 ## Architecture
 
-- **Language**: C++20
+- **Language**: C++20 with modern design patterns
 - **Platform**: Windows 32-bit
-- **Build System**: CMake
-- **Key Dependencies**: MinHook, Protocol Buffers, Winsock2, Direct3D9
+- **Build System**: CMake with modular configuration
+- **Key Dependencies**: MinHook, Protocol Buffers, spdlog (logging)
+- **System Dependencies**: Winsock2, Direct3D9
+
+### Design Principles
+
+- **Layered Architecture**: Interface → Transport → Core → Hooks
+- **Dependency Injection**: Constructor injection throughout, no global state
+- **RAII**: Automatic resource management for all system resources
+- **Thread Safety**: `std::atomic` and proper synchronization
+- **Interface Segregation**: Clear abstractions for all major components
 
 ## Build Commands
 
@@ -24,32 +33,70 @@ cmake --build build --target injector
 
 ## Testing
 
-No automated tests are currently configured. Testing requires:
+### Current Testing
+Manual testing is performed by:
 1. Building `injector.dll`
 2. Injecting into target WoW client process
 3. Testing TCP communication on port 5050
+4. Monitoring logs at `%TEMP%\icecap-agent\icecap-agent.log`
+
+### Planned Testing Infrastructure
+- **Unit Tests**: Google Test framework integration
+- **Mock Interfaces**: Mock implementations for external dependencies
+- **Integration Tests**: End-to-end hook and network functionality testing
+- **Static Analysis**: Enhanced clang-tidy and cppcheck integration
 
 ## Project Structure
 
 ```
-├── library.cpp           # DLL entry point and lifecycle
-├── networking.{h,cpp}     # TCP server and protobuf messaging
-├── hooks/                 # Function hooking implementation
-│   ├── hooks.cpp         # Hook installation
-│   ├── end_scene.cpp     # D3D9 EndScene hook
-│   └── frame_script.cpp  # FrameScript event hook
-├── cmake/                # Build configuration
-└── frontend/             # Web interface components
+├── src/                           # Implementation files
+│   ├── main.cpp                   # DLL entry point and lifecycle
+│   ├── application_context.cpp    # Core application context
+│   ├── shared_state.cpp          # Shared state management
+│   ├── logging.cpp               # Logging system implementation
+│   ├── core/                     # Business logic layer
+│   │   ├── CommandExecutor.cpp   # Command execution logic
+│   │   ├── EventPublisher.cpp    # Event publishing system
+│   │   └── MessageProcessor.cpp  # Message processing coordination
+│   ├── hooks/                    # Hook system implementation
+│   │   ├── BaseHook.cpp          # Base hook class
+│   │   ├── D3D9Hook.cpp          # D3D9 EndScene hook
+│   │   ├── framescript_hooks.cpp # FrameScript event hooks
+│   │   ├── HookRegistry.cpp      # Hook registration and management
+│   │   └── hook_manager.cpp      # Hook lifecycle management
+│   └── transport/                # Network transport layer
+│       ├── NetworkManager.cpp    # Network orchestration
+│       ├── ProtocolHandler.cpp   # Protocol Buffer handling
+│       └── TcpServer.cpp         # TCP server implementation
+├── include/icecap/agent/         # Header files with clear layering
+│   ├── interfaces/               # Abstract interfaces
+│   ├── core/                     # Business logic headers
+│   ├── hooks/                    # Hook system headers
+│   ├── transport/                # Network transport headers
+│   └── *.hpp                     # Core system headers
+├── cmake/                        # Build configuration
+│   ├── Dependencies.cmake       # Dependency management
+│   ├── Options.cmake           # Build options
+│   ├── ProtobufGen.cmake       # Protocol Buffer generation
+│   ├── StaticAnalysis.cmake    # Code analysis tools
+│   └── Targets.cmake           # Build targets
+└── .clang-format/.clang-tidy    # Code quality tools
 ```
 
 ## Key Features
 
-- **Function Hooking**: MinHook-based hooks for D3D9 EndScene and FrameScript events
-- **TCP Server**: Embedded server (port 5050) for command/event communication
+### Core Systems
+- **Production-Grade Architecture**: Layered design with proper separation of concerns
+- **Thread-Safe Design**: Atomic operations and synchronization throughout
+- **Structured Logging**: spdlog-based logging with rotating files (`%TEMP%\icecap-agent\`)
+- **Resource Management**: RAII wrappers for all D3D9 and system resources
+
+### Functional Features
+- **Function Hooking**: Class-based MinHook system for D3D9 EndScene and FrameScript
+- **TCP Server**: Robust embedded server (port 5050) with connection management
 - **Protocol Buffers**: Structured messaging with icecap-contracts schema
-- **Lua Execution**: Execute arbitrary Lua code in WoW client
-- **ClickToMove**: Automated movement commands
-- **Self-Unload**: Clean unload via Delete key
+- **Command Execution**: Lua code execution and ClickToMove automation
+- **Self-Unload**: Reliable unload via Delete key with edge detection
 
 ## Dependencies
 
@@ -67,6 +114,16 @@ All dependencies are fetched automatically via CMake FetchContent:
 
 ## Common Tasks
 
-- Build: Use `cmake --build build --target injector`
-- Deploy: Inject resulting `injector.dll` into target process
-- Update Contracts: Dependencies auto-fetch latest from icecap-contracts repo
+### Build & Development
+- **Build**: `cmake --build build --target injector`
+- **Static Analysis**: `cmake --build build --target clang-tidy` (if configured)
+- **Format Code**: Uses `.clang-format` configuration
+
+### Deployment & Debugging
+- **Deploy**: Inject resulting `injector.dll` into target process
+- **Monitor**: Check logs at `%TEMP%\icecap-agent\icecap-agent.log`
+- **Debug**: Use structured logging levels (trace, debug, info, warn, error)
+
+### Maintenance
+- **Update Contracts**: Dependencies auto-fetch latest from icecap-contracts repo
+- **Code Quality**: Configured with clang-tidy rules in `.clang-tidy`

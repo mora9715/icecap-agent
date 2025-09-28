@@ -1,6 +1,6 @@
-# icecap-agent
+# Icecap Agent
 
-Icecap Agent is a **32-bit injectable DLL** for World of Warcraft 3.3.5a that executes commands and publishes events as part of the Icecap ecosystem. The agent runs inside the WoW client process and communicates over a lightweight TCP protocol using Protocol Buffers.
+Icecap Agent is a **production-grade 32-bit injectable DLL** for World of Warcraft 3.3.5a that executes commands and publishes events as part of the Icecap ecosystem. The agent runs inside the WoW client process and communicates over a lightweight TCP protocol using Protocol Buffers.
 
 **Compatible with WoW 3.3.5a build 12340 only.**
 
@@ -18,42 +18,39 @@ Commands and events are defined in the [icecap-contracts](https://github.com/mor
 
 ## Key Features
 
+### Core Functionality
 - **Runtime injection** into WoW client process
-- **TCP server** embedded within the game process (port 5050)
-- **Protocol Buffers** messaging for reliable communication
+- **Embedded TCP server** on port 5050 with robust connection handling
+- **Protocol Buffers** messaging for reliable command/event communication
+- **Self-unload mechanism** via Delete key with proper edge detection
+
+### Hook System
 - **MinHook-based** function hooking for D3D9 EndScene and FrameScript events
-- **Self-unload mechanism** via Delete key
-- **Thread-safe** command/event queuing
+
 
 ## Architecture
 
-- **Language**: C++20
+- **Language**: C++20 with modern design patterns
 - **Platform**: Windows 32-bit only
-- **Dependencies**: MinHook, Protocol Buffers, Winsock2, Direct3D9
 - **Build System**: CMake with FetchContent for dependency management
+- **Core Dependencies**: MinHook, Protocol Buffers (spdlog for logging)
+- **System Dependencies**: Winsock2, Direct3D9
 
 ## Quick Start
 
 1. **Build the DLL**:
    ```bash
    cmake -B build -A Win32
-   cmake --build build --target injector
+   cmake --build build --target icecap-agent
    ```
 
 2. **Inject** `injector.dll` into the target WoW client process
 
 3. **Connect** to the agent on port 5050 and send Protocol Buffer commands
 
-4. **Unload** by pressing Delete key in-game
+4. **Monitor logs** at `%TEMP%\icecap-agent\icecap-agent.log`
 
-## Project Status
-
-🚧 **Work in Progress** - This repository is under active development.
-
-Planned additions:
-- CI/CD pipeline
-- Enhanced error handling
-- Expanded command set
+5. **Unload** by pressing Delete key in-game
 
 ## Documentation
 
