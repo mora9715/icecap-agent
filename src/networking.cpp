@@ -1,4 +1,5 @@
 #include <icecap/agent/networking.hpp>
+#include <icecap/agent/logging.hpp>
 #include <windows.h>
 #include <vector>
 
@@ -71,9 +72,11 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
                                 std::mutex& outboxMutex)
 {
     if (m_running.load()) {
-        return false; // Already running
+        LOG_WARN("Network server is already running");
+        return false;
     }
 
+    LOG_INFO("Starting network server on port 5050");
     m_running.store(true);
 
     // Create server thread
@@ -91,29 +94,47 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
 
     m_serverThread = CreateThread(nullptr, 0, ServerThreadProc, params, 0, nullptr);
 
-    return m_serverThread != nullptr;
+    if (m_serverThread != nullptr) {
+        LOG_INFO("Network server thread created successfully");
+        return true;
+    } else {
+        LOG_ERROR("Failed to create network server thread");
+        m_running.store(false);
+        return false;
+    }
 }
 
 void NetworkManager::stopServer()
 {
     if (!m_running.load()) {
+        LOG_DEBUG("Network server is not running, nothing to stop");
         return;
     }
 
+    LOG_INFO("Stopping network server");
     m_running.store(false);
 
     // Close the listener socket to interrupt the accept call
     if (m_listenerSocket != INVALID_SOCKET) {
+        LOG_DEBUG("Closing listener socket");
         ::closesocket(m_listenerSocket);
         m_listenerSocket = INVALID_SOCKET;
     }
 
     // Wait for server thread to finish
     if (m_serverThread) {
-        WaitForSingleObject(m_serverThread, 2000); // Wait up to 2 seconds
+        LOG_DEBUG("Waiting for server thread to finish");
+        DWORD waitResult = WaitForSingleObject(m_serverThread, 2000); // Wait up to 2 seconds
+        if (waitResult == WAIT_TIMEOUT) {
+            LOG_WARN("Server thread did not finish within timeout");
+        } else {
+            LOG_DEBUG("Server thread finished successfully");
+        }
         CloseHandle(m_serverThread);
         m_serverThread = nullptr;
     }
+
+    LOG_INFO("Network server stopped");
 }
 
 void NetworkManager::serveClient(SOCKET client,
@@ -149,8 +170,11 @@ void NetworkManager::serveClient(SOCKET client,
             while (tryExtractFrame(assemble, frame)) {
                 IncomingMessage cmd;
                 if (cmd.ParseFromArray(frame.data(), static_cast<int>(frame.size()))) {
+                    LOG_INFO("NetworkManager: Received command with ID '" + cmd.id() + "', operation_id '" + cmd.operation_id() + "', type: " + std::to_string(static_cast<int>(cmd.type())));
                     std::lock_guard<std::mutex> lk(inboxMutex);
                     inbox.push(std::move(cmd));
+                } else {
+                    LOG_ERROR("NetworkManager: Failed to parse protobuf message from frame of size " + std::to_string(frame.size()));
                 }
             }
         }
@@ -159,14 +183,19 @@ void NetworkManager::serveClient(SOCKET client,
             std::lock_guard<std::mutex> lk(outboxMutex);
             if (!outbox.empty()) {
                 const OutgoingMessage &evt = outbox.front();
+                LOG_INFO("NetworkManager: Sending event with ID '" + evt.id() + "', operation_id '" + evt.operation_id() + "', type: " + std::to_string(static_cast<int>(evt.type())));
                 std::string payload;
                 if (evt.SerializeToString(&payload)) {
                     std::string toSend;
                     writeFrame(payload, toSend);
                     int sent = ::send(client, toSend.data(), static_cast<int>(toSend.size()), 0);
                     if (sent == SOCKET_ERROR) {
+                        LOG_ERROR("NetworkManager: Failed to send event with ID '" + evt.id() + "'");
                         break;
                     }
+                    LOG_INFO("NetworkManager: Successfully sent event with ID '" + evt.id() + "'");
+                } else {
+                    LOG_ERROR("NetworkManager: Failed to serialize event with ID '" + evt.id() + "'");
                 }
                 outbox.pop();
             }

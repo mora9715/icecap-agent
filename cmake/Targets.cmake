@@ -7,6 +7,7 @@ add_library(icecap-agent SHARED
     src/networking.cpp
     src/application_context.cpp
     src/shared_state.cpp
+    src/logging.cpp
     src/hooks/hooks.cpp
     src/hooks/end_scene.cpp
     src/hooks/frame_script.cpp
@@ -15,6 +16,7 @@ add_library(icecap-agent SHARED
     include/icecap/agent/networking.hpp
     include/icecap/agent/application_context.hpp
     include/icecap/agent/raii_wrappers.hpp
+    include/icecap/agent/logging.hpp
     include/icecap/agent/hooks/hook_manager.hpp
     include/icecap/agent/hooks/d3d9_hooks.hpp
     include/icecap/agent/hooks/framescript_hooks.hpp
@@ -49,4 +51,5 @@ target_link_libraries(icecap-agent PRIVATE
     ws2_32
     d3d9
     protobuf::libprotobuf
+    spdlog::spdlog
 )

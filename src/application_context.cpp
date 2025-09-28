@@ -1,5 +1,6 @@
 #include <icecap/agent/application_context.hpp>
 #include <icecap/agent/hooks/hook_manager.hpp>
+#include <icecap/agent/logging.hpp>
 #include "MinHook.h"
 
 namespace icecap::agent {
@@ -17,19 +18,23 @@ ApplicationContext::~ApplicationContext()
 bool ApplicationContext::initialize(HMODULE hModule)
 {
     if (m_initialized.exchange(true)) {
-        return false; // Already initialized
+        LOG_WARN("ApplicationContext is already initialized");
+        return false;
     }
 
+    LOG_INFO("Initializing ApplicationContext");
     m_hModule = hModule;
     m_running.store(true);
 
     try {
         // Initialize hooks with error checking
         try {
+            LOG_DEBUG("Installing hooks");
             hooks::InstallHooks(false);
+            LOG_INFO("Hooks installed successfully");
         }
         catch (const std::exception& e) {
-            // Hook installation failed
+            LOG_ERROR("Hook installation failed");
             m_running.store(false);
             m_initialized.store(false);
             return false;
@@ -39,6 +44,7 @@ bool ApplicationContext::initialize(HMODULE hModule)
         constexpr unsigned short kPORT = 5050;
         constexpr char kDELIM = '\x1E';
 
+        LOG_DEBUG("Starting network server on port 5050");
         if (!m_networkManager || !m_networkManager->startServer(
             m_inboxQueue,
             m_outboxQueue,
@@ -47,16 +53,17 @@ bool ApplicationContext::initialize(HMODULE hModule)
             m_inboxMutex,
             m_outboxMutex)) {
 
-            // Network startup failed
+            LOG_ERROR("Network server startup failed");
             m_running.store(false);
             m_initialized.store(false);
             return false;
         }
 
+        LOG_INFO("ApplicationContext initialization completed successfully");
         return true;
     }
     catch (const std::exception& e) {
-        // Unexpected exception during initialization
+        LOG_CRITICAL("Unexpected exception during ApplicationContext initialization");
         m_running.store(false);
         m_initialized.store(false);
         return false;
@@ -72,27 +79,37 @@ bool ApplicationContext::initialize(HMODULE hModule)
 void ApplicationContext::shutdown()
 {
     if (!m_initialized.load()) {
+        LOG_DEBUG("ApplicationContext is not initialized, nothing to shutdown");
         return;
     }
 
+    LOG_INFO("Shutting down ApplicationContext");
     m_running.store(false);
 
     try {
         // Stop network manager first
         if (m_networkManager) {
+            LOG_DEBUG("Stopping network manager");
             m_networkManager->stopServer();
         }
     }
+    catch (const std::exception& e) {
+        LOG_WARN("Error during network manager shutdown");
+    }
     catch (...) {
-        // Ignore network shutdown errors - we're shutting down anyway
+        LOG_WARN("Unknown error during network manager shutdown");
     }
 
     try {
         // Cleanup MinHook
+        LOG_DEBUG("Uninitializing MinHook");
         MH_Uninitialize();
     }
+    catch (const std::exception& e) {
+        LOG_WARN("Error during MinHook cleanup");
+    }
     catch (...) {
-        // Ignore MinHook cleanup errors - we're shutting down anyway
+        LOG_WARN("Unknown error during MinHook cleanup");
     }
 
     m_initialized.store(false);
