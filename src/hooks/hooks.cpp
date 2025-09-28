@@ -6,25 +6,33 @@
 
 #include <icecap/agent/hooks/d3d9_hooks.hpp>
 #include <icecap/agent/hooks/framescript_hooks.hpp>
+#include <icecap/agent/raii_wrappers.hpp>
 
 namespace icecap::agent::hooks {
 
 void InstallHooks(const bool enableEvents)
 {
-    IDirect3D9* pD3D = Direct3DCreate9(D3D_SDK_VERSION);
-    if (!pD3D) return;
+    // Use RAII wrappers for automatic resource management
+    raii::D3D9Device d3d(Direct3DCreate9(D3D_SDK_VERSION));
+    if (!d3d) {
+        return; // Failed to create D3D9 device
+    }
 
     D3DPRESENT_PARAMETERS d3dpp = {};
     d3dpp.Windowed = TRUE;
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
     d3dpp.hDeviceWindow = GetForegroundWindow();
+
     IDirect3DDevice9* pDummyDev = nullptr;
 
-    if (SUCCEEDED(pD3D->CreateDevice(
+    if (SUCCEEDED(d3d->CreateDevice(
         D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, d3dpp.hDeviceWindow,
         D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &pDummyDev)))
     {
-        void** vtable = *reinterpret_cast<void***>(pDummyDev);
+        // Use RAII wrapper for the device
+        raii::D3D9DeviceWrapper device(pDummyDev);
+
+        void** vtable = *reinterpret_cast<void***>(device.get());
         void* pEndScene = vtable[42]; // 42 = EndScene index
 
         MH_Initialize();
@@ -43,9 +51,9 @@ void InstallHooks(const bool enableEvents)
                          reinterpret_cast<LPVOID*>(&g_OriginalFrameScriptSignalEvent));
             MH_EnableHook(pFrameScriptSignalEvent);
         }
-        pDummyDev->Release();
+
+        // Device and D3D objects are automatically released via RAII destructors
     }
-    pD3D->Release();
 }
 
 }

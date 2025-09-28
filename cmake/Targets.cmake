@@ -5,12 +5,16 @@ add_library(icecap-agent SHARED
     # Source files
     src/main.cpp
     src/networking.cpp
+    src/application_context.cpp
+    src/shared_state.cpp
     src/hooks/hooks.cpp
     src/hooks/end_scene.cpp
     src/hooks/frame_script.cpp
 
     # Public headers
     include/icecap/agent/networking.hpp
+    include/icecap/agent/application_context.hpp
+    include/icecap/agent/raii_wrappers.hpp
     include/icecap/agent/hooks/hook_manager.hpp
     include/icecap/agent/hooks/d3d9_hooks.hpp
     include/icecap/agent/hooks/framescript_hooks.hpp

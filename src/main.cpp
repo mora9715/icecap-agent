@@ -1,49 +1,50 @@
 #include <winsock2.h>
 #include <windows.h>
-#include <fstream>
 #include "MinHook.h"
-#include <queue>
-#include <mutex>
-#include <icecap/agent/networking.hpp>
-#include <icecap/agent/hooks/hook_manager.hpp>
+#include <memory>
+#include <icecap/agent/application_context.hpp>
+#include <icecap/agent/raii_wrappers.hpp>
+#include "shared_state.hpp"
 
-static HMODULE g_hModule = nullptr;
-static volatile bool g_running = true;
-static HANDLE g_mainThreadHandle = nullptr;
-
-static constexpr char kDELIM = '\x1E';
-static constexpr unsigned short kPORT = 5050;
-
-// Define the shared state variables in the namespace
-namespace icecap::agent {
-    std::mutex inbox_mtx;
-    std::mutex outbox_mtx;
-    std::queue<IncomingMessage> inboxQueue;
-    std::queue<OutgoingMessage> outboxQueue;
-}
-
-static icecap::agent::NetworkManager g_networkManager;
+// Global application context (managed via RAII)
+static std::unique_ptr<icecap::agent::ApplicationContext> g_appContext;
 
 
 void Cleanup()
 {
-    g_networkManager.stopServer();
-
-    MH_Uninitialize();
+    if (g_appContext) {
+        icecap::agent::SetApplicationContext(nullptr);
+        g_appContext->shutdown();
+        g_appContext.reset();
+    }
 }
 
 DWORD WINAPI MainThread(LPVOID hMod)
 {
-    g_hModule = static_cast<HMODULE>(hMod);
+    HMODULE hModule = static_cast<HMODULE>(hMod);
 
-    icecap::agent::hooks::InstallHooks(false);
+    try {
+        // Create and initialize application context
+        g_appContext = std::make_unique<icecap::agent::ApplicationContext>();
 
-    // Start the network server
-    g_networkManager.startServer(icecap::agent::inboxQueue, icecap::agent::outboxQueue, kPORT, kDELIM, icecap::agent::inbox_mtx, icecap::agent::outbox_mtx);
+        if (!g_appContext->initialize(hModule)) {
+            return 1; // Initialization failed
+        }
 
-    // Keep the main thread alive while the network server runs
-    while (g_running && g_networkManager.isRunning()) {
-        Sleep(100);
+        // Set the application context for hooks to access
+        icecap::agent::SetApplicationContext(g_appContext.get());
+
+        // Keep the main thread alive while the application runs
+        while (g_appContext->isRunning()) {
+            Sleep(100);
+        }
+
+    } catch (...) {
+        // Handle any unexpected exceptions
+        if (g_appContext) {
+            g_appContext->shutdown();
+        }
+        return 1;
     }
 
     return 0;
@@ -51,28 +52,24 @@ DWORD WINAPI MainThread(LPVOID hMod)
 
 DWORD WINAPI CleanupThread(LPVOID hMod)
 {
-    g_hModule = static_cast<HMODULE>(hMod);
+    HMODULE hModule = static_cast<HMODULE>(hMod);
 
-    while (g_running)
+    while (g_appContext && g_appContext->isRunning())
     {
         if (GetAsyncKeyState(VK_DELETE) & 1)
         {
-            g_running = false;
+            if (g_appContext) {
+                g_appContext->stop();
+            }
 
             // Cleanup first
             Cleanup();
-
-            // Wait for the main thread to finish
-            if (g_mainThreadHandle) {
-                WaitForSingleObject(g_mainThreadHandle, 2000);
-                CloseHandle(g_mainThreadHandle);
-            }
 
             MessageBoxA(nullptr,
                 "Hook unloaded!",
                 "Cleanup", MB_OK | MB_TOPMOST);
 
-            FreeLibraryAndExitThread(g_hModule, 0);
+            FreeLibraryAndExitThread(hModule, 0);
         }
         Sleep(50);
     }
@@ -85,8 +82,24 @@ bool APIENTRY DllMain(const HMODULE hMod, const DWORD reason, LPVOID)
     if (reason == DLL_PROCESS_ATTACH)
     {
         DisableThreadLibraryCalls(hMod);
-        g_mainThreadHandle = CreateThread(nullptr, 0, MainThread, hMod, 0, nullptr);
-        CreateThread(nullptr, 0, CleanupThread, hMod, 0, nullptr);
+
+        // Create threads with proper RAII management
+        icecap::agent::raii::ThreadHandle mainThread(
+            CreateThread(nullptr, 0, MainThread, hMod, 0, nullptr)
+        );
+
+        icecap::agent::raii::ThreadHandle cleanupThread(
+            CreateThread(nullptr, 0, CleanupThread, hMod, 0, nullptr)
+        );
+
+        // Note: ThreadHandle destructors will handle cleanup automatically
+        // when the DLL is unloaded. For this simple case, we let them
+        // detach since the threads manage their own lifecycle.
+        if (mainThread && cleanupThread) {
+            // Threads created successfully, detach them
+            mainThread.get(); // Keep reference alive
+            cleanupThread.get(); // Keep reference alive
+        }
     }
     return TRUE;
 }

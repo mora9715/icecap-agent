@@ -11,6 +11,8 @@
 #include "icecap/agent/v1/events.pb.h"
 #include "icecap/agent/v1/common.pb.h"
 
+using icecap::agent::GetApplicationContext;
+
 namespace icecap::agent::hooks {
 
 // Original function pointer definition
@@ -24,10 +26,15 @@ long __stdcall HookedEndScene(IDirect3DDevice9* pDevice)
     using p_GetText = char* (__cdecl*)(const char* text, std::nullptr_t unk1, std::nullptr_t unk2);
     static auto GetText = reinterpret_cast<p_GetText>(0x819D40);
 
-    std::lock_guard lk(inbox_mtx);
-    if (!inboxQueue.empty()) {
-        IncomingMessage cmd = inboxQueue.front();
-        inboxQueue.pop();
+    auto* appContext = GetApplicationContext();
+    if (!appContext) {
+        return g_OriginalEndScene(pDevice);
+    }
+
+    std::lock_guard lk(appContext->getInboxMutex());
+    if (!appContext->getInboxQueue().empty()) {
+        IncomingMessage cmd = appContext->getInboxQueue().front();
+        appContext->getInboxQueue().pop();
 
         // Process the command according to its type
         switch (cmd.type()) {
@@ -51,8 +58,8 @@ long __stdcall HookedEndScene(IDirect3DDevice9* pDevice)
                     auto *ev_payload = event.mutable_lua_variable_read_event_payload();
                     ev_payload->set_result(result);
 
-                    std::lock_guard outbox_lk(outbox_mtx);
-                    outboxQueue.push(event);
+                    std::lock_guard outbox_lk(appContext->getOutboxMutex());
+                    appContext->getOutboxQueue().push(event);
                 }
                 break;
             }

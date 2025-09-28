@@ -70,11 +70,11 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
                                 std::mutex& inboxMutex,
                                 std::mutex& outboxMutex)
 {
-    if (m_running) {
+    if (m_running.load()) {
         return false; // Already running
     }
 
-    m_running = true;
+    m_running.store(true);
 
     // Create server thread
     struct ThreadParams {
@@ -96,11 +96,11 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
 
 void NetworkManager::stopServer()
 {
-    if (!m_running) {
+    if (!m_running.load()) {
         return;
     }
 
-    m_running = false;
+    m_running.store(false);
 
     // Close the listener socket to interrupt the accept call
     if (m_listenerSocket != INVALID_SOCKET) {
@@ -120,14 +120,14 @@ void NetworkManager::serveClient(SOCKET client,
                                 std::queue<IncomingMessage>& inbox,
                                 std::queue<OutgoingMessage>& outbox,
                                 char delim,
-                                volatile bool& running,
+                                const std::atomic<bool>& running,
                                 std::mutex& inboxMutex,
                                 std::mutex& outboxMutex)
 {
     std::string assemble;
     char buf[1024];
 
-    while (running) {
+    while (running.load()) {
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(client, &readfds);
@@ -186,6 +186,7 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
 {
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        // WSA initialization failed
         return;
     }
 
@@ -221,7 +222,7 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
 
     // Access the shared state from the namespace
 
-    while (manager->m_running) {
+    while (manager->m_running.load()) {
         // Set socket to non-blocking for accept to allow checking m_running
         fd_set readfds;
         FD_ZERO(&readfds);
@@ -229,7 +230,7 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
         timeval tv{ 0, 100'000 }; // 100 ms
 
         int ready = ::select(0, &readfds, nullptr, nullptr, &tv);
-        if (ready == SOCKET_ERROR || !manager->m_running) {
+        if (ready == SOCKET_ERROR || !manager->m_running.load()) {
             break;
         }
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <queue>
 #include <mutex>
+#include <atomic>
 
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
@@ -48,7 +49,7 @@ public:
                            std::queue<IncomingMessage>& inbox,
                            std::queue<OutgoingMessage>& outbox,
                            char delimiter,
-                           volatile bool& running,
+                           const std::atomic<bool>& running,
                            std::mutex& inboxMutex,
                            std::mutex& outboxMutex);
 
@@ -56,7 +57,7 @@ private:
     static constexpr char DEFAULT_DELIMITER = '\x1E';
     static constexpr unsigned short DEFAULT_PORT = 5050;
 
-    volatile bool m_running;
+    std::atomic<bool> m_running;
     SOCKET m_listenerSocket;
     HANDLE m_serverThread;
     std::mutex* m_inboxMutex;
