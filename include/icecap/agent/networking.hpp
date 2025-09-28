@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ICECAP_AGENT_NETWORKING_HPP
+#define ICECAP_AGENT_NETWORKING_HPP
 
 #include <winsock2.h>
 #include <string>
@@ -8,6 +9,8 @@
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
 #include "icecap/agent/v1/common.pb.h"
+
+namespace icecap::agent {
 
 // Use protobuf messages directly for networking
 using IncomingMessage = icecap::agent::v1::Command;
@@ -22,7 +25,9 @@ public:
     bool startServer(std::queue<IncomingMessage>& inbox,
                     std::queue<OutgoingMessage>& outbox,
                     unsigned short port,
-                    char delimiter);
+                    char delimiter,
+                    std::mutex& inboxMutex,
+                    std::mutex& outboxMutex);
 
     // Stop the server and cleanup
     void stopServer();
@@ -35,7 +40,9 @@ public:
                                std::queue<IncomingMessage>& inbox,
                                std::queue<OutgoingMessage>& outbox,
                                unsigned short port,
-                               char delimiter);
+                               char delimiter,
+                               std::mutex& inboxMutex,
+                               std::mutex& outboxMutex);
 
     static void serveClient(SOCKET client,
                            std::queue<IncomingMessage>& inbox,
@@ -55,3 +62,7 @@ private:
     std::mutex* m_inboxMutex;
     std::mutex* m_outboxMutex;
 };
+
+} // namespace icecap::agent
+
+#endif // ICECAP_AGENT_NETWORKING_HPP

@@ -1,35 +1,46 @@
 # Project targets and linking
 
 # Main shared library target
-add_library(injector SHARED
-    library.cpp
-    networking.cpp
-    networking.h
-    hooks/hooks.cpp
-    hooks/end_scene.cpp
-    hooks/frame_script.cpp
-    hooks/hooks.h
-    hooks/end_scene.h
-    hooks/frame_script.h
-    hooks/state.h
+add_library(icecap-agent SHARED
+    # Source files
+    src/main.cpp
+    src/networking.cpp
+    src/hooks/hooks.cpp
+    src/hooks/end_scene.cpp
+    src/hooks/frame_script.cpp
+
+    # Public headers
+    include/icecap/agent/networking.hpp
+    include/icecap/agent/hooks/hook_manager.hpp
+    include/icecap/agent/hooks/d3d9_hooks.hpp
+    include/icecap/agent/hooks/framescript_hooks.hpp
+
+    # Private headers
+    src/shared_state.hpp
 )
 
 # Add generated protobuf sources if any
 if(GEN_SRCS)
-    target_sources(injector PRIVATE ${GEN_SRCS})
+    target_sources(icecap-agent PRIVATE ${GEN_SRCS})
 endif()
 
-# Preserve compile and link flags
-set_target_properties(injector PROPERTIES
+# Modern CMake target properties
+set_target_properties(icecap-agent PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
     COMPILE_OPTIONS "-m32"
     LINK_FLAGS "-m32 -static-libgcc -static-libstdc++"
 )
 
-# Include generated headers
-target_include_directories(injector PRIVATE ${GENERATED_DIR})
+# Include directories
+target_include_directories(icecap-agent
+    PUBLIC include
+    PRIVATE src
+    PRIVATE ${GENERATED_DIR}
+)
 
 # Link dependencies
-target_link_libraries(injector PRIVATE
+target_link_libraries(icecap-agent PRIVATE
     minhook
     ws2_32
     d3d9

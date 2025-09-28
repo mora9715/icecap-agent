@@ -1,11 +1,13 @@
-#include "hooks.h"
+#include <icecap/agent/hooks/hook_manager.hpp>
 
 #include <windows.h>
 #include <d3d9.h>
 #include "MinHook.h"
 
-#include "end_scene.h"
-#include "frame_script.h"
+#include <icecap/agent/hooks/d3d9_hooks.hpp>
+#include <icecap/agent/hooks/framescript_hooks.hpp>
+
+namespace icecap::agent::hooks {
 
 void InstallHooks(const bool enableEvents)
 {
@@ -44,4 +46,6 @@ void InstallHooks(const bool enableEvents)
         pDummyDev->Release();
     }
     pD3D->Release();
+}
+
 }

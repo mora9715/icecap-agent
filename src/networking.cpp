@@ -1,8 +1,10 @@
-#include "networking.h"
+#include <icecap/agent/networking.hpp>
 #include <windows.h>
 #include <vector>
 
 #pragma comment(lib, "ws2_32.lib")
+
+namespace icecap::agent {
 
 // Helpers for length-prefixed (big-endian) framing
 static inline bool tryExtractFrame(std::string &buffer, std::string &frame) {
@@ -51,10 +53,12 @@ static DWORD WINAPI ServerThreadProc(LPVOID param)
         std::queue<OutgoingMessage>* outbox;
         unsigned short port;
         char delimiter;
+        std::mutex* inboxMutex;
+        std::mutex* outboxMutex;
     };
 
     ThreadParams* p = static_cast<ThreadParams*>(param);
-    NetworkManager::tcpServerThread(p->manager, *p->inbox, *p->outbox, p->port, p->delimiter);
+    NetworkManager::tcpServerThread(p->manager, *p->inbox, *p->outbox, p->port, p->delimiter, *p->inboxMutex, *p->outboxMutex);
     delete p;
     return 0;
 }
@@ -62,7 +66,9 @@ static DWORD WINAPI ServerThreadProc(LPVOID param)
 bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
                                 std::queue<OutgoingMessage>& outbox,
                                 unsigned short port,
-                                char delimiter)
+                                char delimiter,
+                                std::mutex& inboxMutex,
+                                std::mutex& outboxMutex)
 {
     if (m_running) {
         return false; // Already running
@@ -77,9 +83,11 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
         std::queue<OutgoingMessage>* outbox;
         unsigned short port;
         char delimiter;
+        std::mutex* inboxMutex;
+        std::mutex* outboxMutex;
     };
 
-    ThreadParams* params = new ThreadParams{this, &inbox, &outbox, port, delimiter};
+    ThreadParams* params = new ThreadParams{this, &inbox, &outbox, port, delimiter, &inboxMutex, &outboxMutex};
 
     m_serverThread = CreateThread(nullptr, 0, ServerThreadProc, params, 0, nullptr);
 
@@ -172,7 +180,9 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
                                     std::queue<IncomingMessage>& inbox,
                                     std::queue<OutgoingMessage>& outbox,
                                     unsigned short port,
-                                    char delim)
+                                    char delim,
+                                    std::mutex& inboxMutex,
+                                    std::mutex& outboxMutex)
 {
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
@@ -209,9 +219,7 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
         return;
     }
 
-    // Get mutex references from the manager
-    extern std::mutex inbox_mtx;
-    extern std::mutex outbox_mtx;
+    // Access the shared state from the namespace
 
     while (manager->m_running) {
         // Set socket to non-blocking for accept to allow checking m_running
@@ -233,7 +241,7 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
                 break;
             }
 
-            serveClient(client, inbox, outbox, delim, manager->m_running, inbox_mtx, outbox_mtx);
+            serveClient(client, inbox, outbox, delim, manager->m_running, inboxMutex, outboxMutex);
         }
     }
 
@@ -241,3 +249,5 @@ void NetworkManager::tcpServerThread(NetworkManager* manager,
     manager->m_listenerSocket = INVALID_SOCKET;
     WSACleanup();
 }
+
+} // namespace icecap::agent

@@ -1,32 +1,28 @@
-// DemoDll.cpp  (Release | Win32) – minimal packet-logger with self-unload
-
-#include <winsock2.h>   // must be first!
+#include <winsock2.h>
 #include <windows.h>
 #include <fstream>
 #include "MinHook.h"
-#include <d3d9.h>
 #include <queue>
 #include <mutex>
-#include "networking.h"
-
-#pragma comment(lib, "d3d9.lib")
-
-#include "hooks/hooks.h"
+#include <icecap/agent/networking.hpp>
+#include <icecap/agent/hooks/hook_manager.hpp>
 
 static HMODULE g_hModule = nullptr;
 static volatile bool g_running = true;
 static HANDLE g_mainThreadHandle = nullptr;
 
-std::mutex inbox_mtx;
-std::mutex outbox_mtx;
-
 static constexpr char kDELIM = '\x1E';
 static constexpr unsigned short kPORT = 5050;
 
-std::queue<IncomingMessage> inboxQueue;
-std::queue<OutgoingMessage> outboxQueue;
+// Define the shared state variables in the namespace
+namespace icecap::agent {
+    std::mutex inbox_mtx;
+    std::mutex outbox_mtx;
+    std::queue<IncomingMessage> inboxQueue;
+    std::queue<OutgoingMessage> outboxQueue;
+}
 
-static NetworkManager g_networkManager;
+static icecap::agent::NetworkManager g_networkManager;
 
 
 void Cleanup()
@@ -40,10 +36,10 @@ DWORD WINAPI MainThread(LPVOID hMod)
 {
     g_hModule = static_cast<HMODULE>(hMod);
 
-    InstallHooks(false);
+    icecap::agent::hooks::InstallHooks(false);
 
     // Start the network server
-    g_networkManager.startServer(inboxQueue, outboxQueue, kPORT, kDELIM);
+    g_networkManager.startServer(icecap::agent::inboxQueue, icecap::agent::outboxQueue, kPORT, kDELIM, icecap::agent::inbox_mtx, icecap::agent::outbox_mtx);
 
     // Keep the main thread alive while the network server runs
     while (g_running && g_networkManager.isRunning()) {
@@ -68,7 +64,7 @@ DWORD WINAPI CleanupThread(LPVOID hMod)
 
             // Wait for the main thread to finish
             if (g_mainThreadHandle) {
-                WaitForSingleObject(g_mainThreadHandle, 2000); // Wait up to 2 seconds
+                WaitForSingleObject(g_mainThreadHandle, 2000);
                 CloseHandle(g_mainThreadHandle);
             }
 

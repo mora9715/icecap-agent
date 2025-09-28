@@ -1,9 +1,11 @@
-#include "frame_script.h"
+#include <icecap/agent/hooks/framescript_hooks.hpp>
 
 #include <string>
 #include <vector>
 #include <mutex>
 #include <windows.h>
+
+namespace icecap::agent::hooks {
 
 // Original function pointer definition
 p_FrameScriptSignalEvent g_OriginalFrameScriptSignalEvent = nullptr;
@@ -150,3 +152,5 @@ void __cdecl HookedFrameScriptSignalEvent(int eventid, const char* fmt, int args
         g_OriginalFrameScriptSignalEvent(eventid, fmt, argsBase);
     }
 }
+
+} // namespace icecap::agent::hooks
