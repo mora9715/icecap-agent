@@ -6,7 +6,7 @@
 namespace icecap::agent {
 
 ApplicationContext::ApplicationContext()
-    : m_networkManager(std::make_unique<NetworkManager>())
+    : m_networkManager(std::make_unique<transport::NetworkManager>())
 {
 }
 
@@ -42,14 +42,12 @@ bool ApplicationContext::initialize(HMODULE hModule)
 
         // Start network manager with error checking
         constexpr unsigned short kPORT = 5050;
-        constexpr char kDELIM = '\x1E';
 
         LOG_DEBUG("Starting network server on port 5050");
         if (!m_networkManager || !m_networkManager->startServer(
             m_inboxQueue,
             m_outboxQueue,
             kPORT,
-            kDELIM,
             m_inboxMutex,
             m_outboxMutex)) {
 
@@ -125,7 +123,7 @@ void ApplicationContext::stop()
     m_running.store(false);
 }
 
-NetworkManager& ApplicationContext::getNetworkManager()
+transport::NetworkManager& ApplicationContext::getNetworkManager()
 {
     return *m_networkManager;
 }

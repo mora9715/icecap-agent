@@ -1,19 +1,27 @@
 #ifndef ICECAP_AGENT_APPLICATION_CONTEXT_HPP
 #define ICECAP_AGENT_APPLICATION_CONTEXT_HPP
 
+#include <winsock2.h>
 #include <memory>
 #include <atomic>
 #include <queue>
 #include <mutex>
-#include "icecap/agent/networking.hpp"
+#include "transport/NetworkManager.hpp"
+#include "interfaces/IApplicationContext.hpp"
+#include "icecap/agent/v1/commands.pb.h"
+#include "icecap/agent/v1/events.pb.h"
 
 namespace icecap::agent {
+
+// Message type aliases
+using IncomingMessage = icecap::agent::v1::Command;
+using OutgoingMessage = icecap::agent::v1::Event;
 
 /**
  * Application context that manages the lifecycle and dependencies
  * of the Icecap Agent. Replaces global state with proper RAII.
  */
-class ApplicationContext {
+class ApplicationContext : public interfaces::IApplicationContext {
 public:
     ApplicationContext();
     ~ApplicationContext();
@@ -25,37 +33,37 @@ public:
     ApplicationContext& operator=(ApplicationContext&&) = delete;
 
     // Initialize the application context
-    bool initialize(HMODULE hModule);
+    bool initialize(HMODULE hModule) override;
 
     // Shutdown the application context
-    void shutdown();
+    void shutdown() override;
 
     // Check if the application should continue running
-    bool isRunning() const;
+    bool isRunning() const override;
 
     // Signal the application to stop
-    void stop();
+    void stop() override;
 
     // Get the network manager
-    NetworkManager& getNetworkManager();
+    transport::NetworkManager& getNetworkManager();
 
     // Get message queues
-    std::queue<IncomingMessage>& getInboxQueue();
-    std::queue<OutgoingMessage>& getOutboxQueue();
+    std::queue<IncomingMessage>& getInboxQueue() override;
+    std::queue<OutgoingMessage>& getOutboxQueue() override;
 
     // Get mutexes
-    std::mutex& getInboxMutex();
-    std::mutex& getOutboxMutex();
+    std::mutex& getInboxMutex() override;
+    std::mutex& getOutboxMutex() override;
 
     // Get module handle
-    HMODULE getModuleHandle() const;
+    HMODULE getModuleHandle() const override;
 
 private:
     std::atomic<bool> m_running{false};
     HMODULE m_hModule{nullptr};
 
     // Network management
-    std::unique_ptr<NetworkManager> m_networkManager;
+    std::unique_ptr<transport::NetworkManager> m_networkManager;
 
     // Message queues and synchronization
     std::queue<IncomingMessage> m_inboxQueue;

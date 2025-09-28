@@ -30,7 +30,7 @@ private:
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-    std::string getDefaultLogPath() const;
+    [[nodiscard]] std::string getDefaultLogPath() const;
 
     std::shared_ptr<spdlog::logger> m_logger;
     bool m_initialized = false;

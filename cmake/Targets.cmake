@@ -4,25 +4,55 @@
 add_library(icecap-agent SHARED
     # Source files
     src/main.cpp
-    src/networking.cpp
     src/application_context.cpp
     src/shared_state.cpp
     src/logging.cpp
     src/hooks/hooks.cpp
-    src/hooks/end_scene.cpp
     src/hooks/frame_script.cpp
 
-    # Public headers
-    include/icecap/agent/networking.hpp
+    # Transport layer
+    src/transport/TcpServer.cpp
+    src/transport/ProtocolHandler.cpp
+    src/transport/NetworkManager.cpp
+
+    # Core business logic
+    src/core/MessageProcessor.cpp
+    src/core/CommandExecutor.cpp
+    src/core/EventPublisher.cpp
+
+    # Hook implementations
+    src/hooks/BaseHook.cpp
+    src/hooks/D3D9Hook.cpp
+    src/hooks/HookRegistry.cpp
+
+    # Public headers - Interfaces
+    include/icecap/agent/interfaces/IApplicationContext.hpp
+    include/icecap/agent/interfaces/IMessageHandler.hpp
+    include/icecap/agent/interfaces/INetworkProtocol.hpp
+    include/icecap/agent/interfaces/IHookRegistry.hpp
+
+    # Public headers - Transport
+    include/icecap/agent/transport/TcpServer.hpp
+    include/icecap/agent/transport/ProtocolHandler.hpp
+    include/icecap/agent/transport/NetworkManager.hpp
+
+    # Public headers - Core
+    include/icecap/agent/core/MessageProcessor.hpp
+    include/icecap/agent/core/CommandExecutor.hpp
+    include/icecap/agent/core/EventPublisher.hpp
+
+    # Public headers - Hooks
+    include/icecap/agent/hooks/BaseHook.hpp
+    include/icecap/agent/hooks/D3D9Hook.hpp
+    include/icecap/agent/hooks/HookRegistry.hpp
+
+    # Public headers - Legacy/General
     include/icecap/agent/application_context.hpp
     include/icecap/agent/raii_wrappers.hpp
     include/icecap/agent/logging.hpp
+    include/icecap/agent/shared_state.hpp
     include/icecap/agent/hooks/hook_manager.hpp
-    include/icecap/agent/hooks/d3d9_hooks.hpp
     include/icecap/agent/hooks/framescript_hooks.hpp
-
-    # Private headers
-    src/shared_state.hpp
 )
 
 # Add generated protobuf sources if any

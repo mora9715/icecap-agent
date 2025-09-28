@@ -1,12 +1,11 @@
 #include <winsock2.h>
 #include <windows.h>
-#include "MinHook.h"
 #include <memory>
 #include <atomic>
 #include <icecap/agent/application_context.hpp>
 #include <icecap/agent/raii_wrappers.hpp>
 #include <icecap/agent/logging.hpp>
-#include "shared_state.hpp"
+#include <icecap/agent/shared_state.hpp>
 
 // Global application context (managed via RAII)
 static std::unique_ptr<icecap::agent::ApplicationContext> g_appContext;
@@ -44,9 +43,9 @@ void Cleanup()
     }
 }
 
-DWORD WINAPI MainThread(LPVOID hMod)
+DWORD WINAPI MainThread(const LPVOID hMod)
 {
-    HMODULE hModule = static_cast<HMODULE>(hMod);
+    const auto hModule = static_cast<HMODULE>(hMod);
 
     try {
         // Initialize logging system first
@@ -73,7 +72,7 @@ DWORD WINAPI MainThread(LPVOID hMod)
 
         LOG_INFO("Main thread shutting down");
 
-    } catch (const std::exception& ex) {
+    } catch ([[maybe_unused]] const std::exception& ex) {
         LOG_CRITICAL("Unhandled exception in main thread");
         if (g_appContext) {
             g_appContext->shutdown();
@@ -90,9 +89,9 @@ DWORD WINAPI MainThread(LPVOID hMod)
     return 0;
 }
 
-DWORD WINAPI CleanupThread(LPVOID hMod)
+DWORD WINAPI CleanupThread(const LPVOID hMod)
 {
-    HMODULE hModule = static_cast<HMODULE>(hMod);
+    const auto hModule = static_cast<HMODULE>(hMod);
 
     // Wait for main thread to initialize logging and application context
     for (int i = 0; i < 100; ++i) { // Wait up to 5 seconds

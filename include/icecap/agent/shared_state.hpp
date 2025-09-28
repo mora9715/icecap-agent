@@ -1,13 +1,16 @@
 #ifndef ICECAP_AGENT_SHARED_STATE_HPP
 #define ICECAP_AGENT_SHARED_STATE_HPP
 
-#include <icecap/agent/application_context.hpp>
+#include "interfaces/IApplicationContext.hpp"
 
 namespace icecap::agent {
 
-// Function to get the current application context
+// Forward declaration
+class ApplicationContext;
+
+// Function to get the current application context interface
 // This will be set by main.cpp and used by hooks
-ApplicationContext* GetApplicationContext();
+interfaces::IApplicationContext* GetApplicationContext();
 
 // Function to set the application context (called from main.cpp)
 void SetApplicationContext(ApplicationContext* context);

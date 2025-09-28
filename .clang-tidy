@@ -1,0 +1,67 @@
+---
+# Clang-tidy configuration for Icecap Agent
+# Focuses on modernization, readability, performance, and bug prevention
+# while being practical for Windows/DLL development
+
+Checks: >-
+  -*,
+  modernize-*,
+  readability-*,
+  performance-*,
+  bugprone-*,
+  clang-analyzer-*,
+  misc-*,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -modernize-use-nodiscard,
+  -readability-function-cognitive-complexity,
+  -readability-implicit-bool-conversion,
+  -misc-non-private-member-variables-in-classes
+
+CheckOptions:
+  # Readability improvements
+  readability-identifier-naming.ClassCase: 'CamelCase'
+  readability-identifier-naming.StructCase: 'CamelCase'
+  readability-identifier-naming.FunctionCase: 'camelBack'
+  readability-identifier-naming.MethodCase: 'camelBack'
+  readability-identifier-naming.VariableCase: 'camelBack'
+  readability-identifier-naming.ParameterCase: 'camelBack'
+  readability-identifier-naming.MemberCase: 'm_camelBack'
+  readability-identifier-naming.PrivateMemberPrefix: 'm_'
+  readability-identifier-naming.ConstantCase: 'UPPER_CASE'
+  readability-identifier-naming.EnumCase: 'CamelCase'
+  readability-identifier-naming.EnumConstantCase: 'UPPER_CASE'
+  readability-identifier-naming.NamespaceCase: 'lower_case'
+
+  # Performance settings
+  performance-for-range-copy.WarnOnAllAutoCopies: true
+  performance-inefficient-vector-operation.EnableProto: false
+
+  # Modernization settings
+  modernize-loop-convert.MaxCopySize: 16
+  modernize-pass-by-value.IncludeStyle: 'llvm'
+  modernize-replace-auto-ptr.IncludeStyle: 'llvm'
+  modernize-use-auto.MinTypeNameLength: 5
+  modernize-use-auto.RemoveStars: false
+
+  # Bugprone settings
+  bugprone-argument-comment.StrictMode: false
+  bugprone-easily-swappable-parameters.MinimumLength: 3
+  bugprone-exception-escape.FunctionsThatShouldNotThrow: 'DllMain'
+
+  # Misc settings
+  misc-const-correctness.AnalyzeValues: true
+  misc-const-correctness.WarnPointersAsValues: false
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: '(src/|include/icecap/agent/)'
+
+FormatStyle: file
+
+# System headers are typically from Windows SDK and dependencies
+SystemHeaders: false
+
+# Use the compile database for accurate analysis
+UseColor: true

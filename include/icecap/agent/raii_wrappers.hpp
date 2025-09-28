@@ -3,7 +3,6 @@
 
 #include <windows.h>
 #include <d3d9.h>
-#include <memory>
 
 namespace icecap::agent::raii {
 
@@ -40,7 +39,7 @@ public:
         return *this;
     }
 
-    IDirect3D9* get() const { return m_d3d; }
+    [[nodiscard]] IDirect3D9* get() const { return m_d3d; }
     IDirect3D9* operator->() const { return m_d3d; }
     explicit operator bool() const { return m_d3d != nullptr; }
 
@@ -81,7 +80,7 @@ public:
         return *this;
     }
 
-    IDirect3DDevice9* get() const { return m_device; }
+    [[nodiscard]] IDirect3DDevice9* get() const { return m_device; }
     IDirect3DDevice9* operator->() const { return m_device; }
     explicit operator bool() const { return m_device != nullptr; }
 
@@ -94,7 +93,7 @@ private:
  */
 class ThreadHandle {
 public:
-    explicit ThreadHandle(HANDLE handle) : m_handle(handle) {}
+    explicit ThreadHandle(const HANDLE handle) : m_handle(handle) {}
 
     ~ThreadHandle() {
         if (m_handle && m_handle != INVALID_HANDLE_VALUE) {
@@ -122,11 +121,11 @@ public:
         return *this;
     }
 
-    HANDLE get() const { return m_handle; }
+    [[nodiscard]] HANDLE get() const { return m_handle; }
     explicit operator bool() const { return m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE; }
 
     // Wait for thread with timeout
-    DWORD wait(DWORD timeout = INFINITE) const {
+    [[nodiscard]] DWORD wait(const DWORD timeout = INFINITE) const {
         if (!m_handle || m_handle == INVALID_HANDLE_VALUE) {
             return WAIT_FAILED;
         }
