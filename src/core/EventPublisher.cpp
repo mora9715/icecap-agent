@@ -1,14 +1,13 @@
-#include <icecap/agent/core/EventPublisher.hpp>
+#include <iomanip>
 #include <random>
 #include <sstream>
-#include <iomanip>
+
+#include <icecap/agent/core/EventPublisher.hpp>
 
 namespace icecap::agent::core {
 
-OutgoingMessage EventPublisher::createLuaVariableReadEvent(
-    const IncomingMessage& originalCommand,
-    const std::string& result) {
-
+OutgoingMessage EventPublisher::createLuaVariableReadEvent(const IncomingMessage& originalCommand,
+                                                           const std::string& result) {
     OutgoingMessage event;
     event.set_id(generateEventId());
     event.set_operation_id(originalCommand.operation_id());
@@ -20,10 +19,8 @@ OutgoingMessage EventPublisher::createLuaVariableReadEvent(
     return event;
 }
 
-OutgoingMessage EventPublisher::createErrorEvent(
-    const IncomingMessage& originalCommand,
-    const std::string& errorMessage) {
-
+OutgoingMessage EventPublisher::createErrorEvent(const IncomingMessage& originalCommand,
+                                                 const std::string& errorMessage) {
     OutgoingMessage event;
     event.set_id(generateEventId());
     event.set_operation_id(originalCommand.operation_id());

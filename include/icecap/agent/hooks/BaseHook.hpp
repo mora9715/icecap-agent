@@ -1,8 +1,9 @@
 #ifndef ICECAP_AGENT_HOOKS_BASE_HOOK_HPP
 #define ICECAP_AGENT_HOOKS_BASE_HOOK_HPP
 
-#include "../interfaces/IHookRegistry.hpp"
 #include <string>
+
+#include "../interfaces/IHookRegistry.hpp"
 
 namespace icecap::agent::hooks {
 
@@ -24,8 +25,12 @@ public:
     // IHook implementation
     bool install() override;
     bool uninstall() override;
-    bool isInstalled() const override { return m_installed; }
-    std::string getName() const override { return m_name; }
+    bool isInstalled() const override {
+        return m_installed;
+    }
+    std::string getName() const override {
+        return m_name;
+    }
 
 protected:
     // Template method pattern - subclasses implement these
@@ -33,7 +38,9 @@ protected:
     virtual bool doUninstall() = 0;
 
     // Helper methods for subclasses
-    void setInstalled(bool installed) { m_installed = installed; }
+    void setInstalled(bool installed) {
+        m_installed = installed;
+    }
 
 private:
     std::string m_name;

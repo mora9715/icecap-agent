@@ -1,16 +1,16 @@
-#include <icecap/agent/hooks/hook_manager.hpp>
-#include <icecap/agent/hooks/HookRegistry.hpp>
-#include <icecap/agent/hooks/D3D9Hook.hpp>
-#include <icecap/agent/logging.hpp>
 #include "MinHook.h"
+
+#include <icecap/agent/hooks/D3D9Hook.hpp>
+#include <icecap/agent/hooks/HookRegistry.hpp>
+#include <icecap/agent/hooks/hook_manager.hpp>
+#include <icecap/agent/logging.hpp>
 
 namespace icecap::agent::hooks {
 
 // Global hook registry instance
 static std::unique_ptr<HookRegistry> g_hookRegistry;
 
-void InstallHooks(const bool enableEvents)
-{
+void InstallHooks(const bool enableEvents) {
     LOG_DEBUG(enableEvents ? "Installing hooks (enableEvents=true)" : "Installing hooks (enableEvents=false)");
 
     try {
@@ -42,7 +42,7 @@ void InstallHooks(const bool enableEvents)
         }
 
         LOG_INFO("Hook installation completed successfully. Installed " +
-                std::to_string(g_hookRegistry->getInstalledHookCount()) + " hooks.");
+                 std::to_string(g_hookRegistry->getInstalledHookCount()) + " hooks.");
 
     } catch (const std::exception& e) {
         LOG_ERROR("Exception during hook installation: " + std::string(e.what()));
@@ -53,4 +53,4 @@ void InstallHooks(const bool enableEvents)
     }
 }
 
-}
+} // namespace icecap::agent::hooks

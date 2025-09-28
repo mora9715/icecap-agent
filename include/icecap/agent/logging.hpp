@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
 namespace spdlog {
-    class logger;
+class logger;
 }
 
 namespace icecap::agent {
@@ -22,7 +22,6 @@ public:
     void warn(const std::string& message);
     void error(const std::string& message);
     void critical(const std::string& message);
-
 
 private:
     Logger() = default;

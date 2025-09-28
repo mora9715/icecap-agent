@@ -3,8 +3,7 @@
 
 namespace icecap::agent::hooks {
 
-BaseHook::BaseHook(std::string name) : m_name(std::move(name)) {
-}
+BaseHook::BaseHook(std::string name) : m_name(std::move(name)) {}
 
 bool BaseHook::install() {
     if (m_installed) {

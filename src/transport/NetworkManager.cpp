@@ -1,24 +1,19 @@
-#include <icecap/agent/transport/NetworkManager.hpp>
-#include <icecap/agent/logging.hpp>
 #include <google/protobuf/util/json_util.h>
+
+#include <icecap/agent/logging.hpp>
+#include <icecap/agent/transport/NetworkManager.hpp>
 
 namespace icecap::agent::transport {
 
 NetworkManager::NetworkManager()
-    : m_tcpServer(std::make_unique<TcpServer>())
-    , m_protocolHandler(std::make_unique<ProtocolHandler>())
-{
-}
+    : m_tcpServer(std::make_unique<TcpServer>()), m_protocolHandler(std::make_unique<ProtocolHandler>()) {}
 
 NetworkManager::~NetworkManager() {
     stopServer();
 }
 
-bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
-                                std::queue<OutgoingMessage>& outbox,
-                                unsigned short port,
-                                std::mutex& inboxMutex,
-                                std::mutex& outboxMutex) {
+bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox, std::queue<OutgoingMessage>& outbox,
+                                 unsigned short port, std::mutex& inboxMutex, std::mutex& outboxMutex) {
     if (m_running.load()) {
         LOG_WARN("NetworkManager: Server is already running");
         return false;
@@ -31,26 +26,14 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox,
     m_outboxMutex = &outboxMutex;
 
     // Set up TCP server callbacks
-    m_tcpServer->setDataCallback([this](const char* data, size_t length) {
-        onDataReceived(data, length);
-    });
-    m_tcpServer->setClientConnectedCallback([this](SOCKET clientSocket) {
-        onClientConnected(clientSocket);
-    });
-    m_tcpServer->setClientDisconnectedCallback([this](SOCKET clientSocket) {
-        onClientDisconnected(clientSocket);
-    });
-    m_tcpServer->setErrorCallback([this](const std::string& error) {
-        onNetworkError(error);
-    });
+    m_tcpServer->setDataCallback([this](const char* data, size_t length) { onDataReceived(data, length); });
+    m_tcpServer->setClientConnectedCallback([this](SOCKET clientSocket) { onClientConnected(clientSocket); });
+    m_tcpServer->setClientDisconnectedCallback([this](SOCKET clientSocket) { onClientDisconnected(clientSocket); });
+    m_tcpServer->setErrorCallback([this](const std::string& error) { onNetworkError(error); });
 
     // Set up protocol handler callbacks
-    m_protocolHandler->setMessageCallback([this](const std::string& message) {
-        onMessageReceived(message);
-    });
-    m_protocolHandler->setErrorCallback([this](const std::string& error) {
-        onProtocolError(error);
-    });
+    m_protocolHandler->setMessageCallback([this](const std::string& message) { onMessageReceived(message); });
+    m_protocolHandler->setErrorCallback([this](const std::string& error) { onProtocolError(error); });
 
     // Start TCP server
     if (!m_tcpServer->start(port)) {
@@ -152,8 +135,7 @@ void NetworkManager::onProtocolError(const std::string& error) {
 }
 
 void NetworkManager::processOutgoingMessages() {
-    if (!m_running.load() || !m_outboxQueue || !m_outboxMutex ||
-        m_currentClient == INVALID_SOCKET) {
+    if (!m_running.load() || !m_outboxQueue || !m_outboxMutex || m_currentClient == INVALID_SOCKET) {
         return;
     }
 

@@ -1,8 +1,9 @@
 #ifndef ICECAP_AGENT_HOOKS_D3D9_HOOK_HPP
 #define ICECAP_AGENT_HOOKS_D3D9_HOOK_HPP
 
-#include "BaseHook.hpp"
 #include <d3d9.h>
+
+#include "BaseHook.hpp"
 
 namespace icecap::agent::hooks {
 
@@ -16,7 +17,7 @@ public:
     ~D3D9Hook() override = default;
 
     // Get the original EndScene function pointer
-    static long (__stdcall* GetOriginalEndScene())(IDirect3DDevice9*);
+    static long(__stdcall* GetOriginalEndScene())(IDirect3DDevice9*);
 
 protected:
     // BaseHook implementation
@@ -25,7 +26,7 @@ protected:
 
 private:
     // Hook function signature
-    using EndSceneFunc = long (__stdcall*)(IDirect3DDevice9*);
+    using EndSceneFunc = long(__stdcall*)(IDirect3DDevice9*);
 
     // Original function pointer storage
     static EndSceneFunc s_originalEndScene;

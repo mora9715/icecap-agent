@@ -1,11 +1,13 @@
 #ifndef ICECAP_AGENT_CORE_MESSAGE_PROCESSOR_HPP
 #define ICECAP_AGENT_CORE_MESSAGE_PROCESSOR_HPP
 
-#include "../interfaces/IMessageHandler.hpp"
-#include "../interfaces/IApplicationContext.hpp"
+#include <memory>
+
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
-#include <memory>
+
+#include "../interfaces/IApplicationContext.hpp"
+#include "../interfaces/IMessageHandler.hpp"
 
 namespace icecap::agent::core {
 

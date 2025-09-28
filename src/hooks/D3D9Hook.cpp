@@ -1,17 +1,18 @@
-#include <icecap/agent/hooks/D3D9Hook.hpp>
-#include <icecap/agent/shared_state.hpp>
-#include <icecap/agent/core/MessageProcessor.hpp>
-#include <icecap/agent/logging.hpp>
-#include "MinHook.h"
 #include <windows.h>
+
+#include "MinHook.h"
+
+#include <icecap/agent/core/MessageProcessor.hpp>
+#include <icecap/agent/hooks/D3D9Hook.hpp>
+#include <icecap/agent/logging.hpp>
+#include <icecap/agent/shared_state.hpp>
 
 namespace icecap::agent::hooks {
 
 // Static member initialization
 D3D9Hook::EndSceneFunc D3D9Hook::s_originalEndScene = nullptr;
 
-D3D9Hook::D3D9Hook() : BaseHook("D3D9EndScene") {
-}
+D3D9Hook::D3D9Hook() : BaseHook("D3D9EndScene") {}
 
 bool D3D9Hook::doInstall() {
     if (!findEndSceneAddress()) {
@@ -25,7 +26,7 @@ bool D3D9Hook::doUninstall() {
     return uninstallMinHook();
 }
 
-long (__stdcall* D3D9Hook::GetOriginalEndScene())(IDirect3DDevice9*) {
+long(__stdcall* D3D9Hook::GetOriginalEndScene())(IDirect3DDevice9*) {
     return s_originalEndScene;
 }
 
@@ -52,9 +53,8 @@ bool D3D9Hook::findEndSceneAddress() {
         pp.hDeviceWindow = GetDesktopWindow();
 
         IDirect3DDevice9* device = nullptr;
-        HRESULT hr = d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
-                                       GetDesktopWindow(), D3DCREATE_SOFTWARE_VERTEXPROCESSING,
-                                       &pp, &device);
+        HRESULT hr = d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, GetDesktopWindow(),
+                                        D3DCREATE_SOFTWARE_VERTEXPROCESSING, &pp, &device);
 
         d3d9->Release();
 
@@ -85,9 +85,8 @@ bool D3D9Hook::installMinHook() {
     }
 
     // Create hook using MinHook
-    MH_STATUS status = MH_CreateHook(m_targetAddress,
-                                    reinterpret_cast<LPVOID>(&HookedEndScene),
-                                    reinterpret_cast<LPVOID*>(&s_originalEndScene));
+    MH_STATUS status = MH_CreateHook(m_targetAddress, reinterpret_cast<LPVOID>(&HookedEndScene),
+                                     reinterpret_cast<LPVOID*>(&s_originalEndScene));
 
     if (status != MH_OK) {
         LOG_ERROR("D3D9Hook: MH_CreateHook failed with status " + std::to_string(status));

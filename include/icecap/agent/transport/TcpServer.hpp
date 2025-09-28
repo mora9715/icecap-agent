@@ -1,8 +1,9 @@
 #ifndef ICECAP_AGENT_TRANSPORT_TCP_SERVER_HPP
 #define ICECAP_AGENT_TRANSPORT_TCP_SERVER_HPP
 
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock2.h>
+
 #include <atomic>
 #include <functional>
 #include <memory>
@@ -33,16 +34,26 @@ public:
     // Server lifecycle
     bool start(unsigned short port);
     void stop();
-    bool isRunning() const { return m_running.load(); }
+    bool isRunning() const {
+        return m_running.load();
+    }
 
     // Send data to a specific client
     bool sendData(SOCKET clientSocket, const char* data, size_t length);
 
     // Callbacks
-    void setDataCallback(DataCallback callback) { m_dataCallback = std::move(callback); }
-    void setClientConnectedCallback(ClientConnectedCallback callback) { m_clientConnectedCallback = std::move(callback); }
-    void setClientDisconnectedCallback(ClientDisconnectedCallback callback) { m_clientDisconnectedCallback = std::move(callback); }
-    void setErrorCallback(ErrorCallback callback) { m_errorCallback = std::move(callback); }
+    void setDataCallback(DataCallback callback) {
+        m_dataCallback = std::move(callback);
+    }
+    void setClientConnectedCallback(ClientConnectedCallback callback) {
+        m_clientConnectedCallback = std::move(callback);
+    }
+    void setClientDisconnectedCallback(ClientDisconnectedCallback callback) {
+        m_clientDisconnectedCallback = std::move(callback);
+    }
+    void setErrorCallback(ErrorCallback callback) {
+        m_errorCallback = std::move(callback);
+    }
 
 private:
     // Threading

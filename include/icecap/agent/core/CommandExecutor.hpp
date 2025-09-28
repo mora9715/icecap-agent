@@ -1,9 +1,10 @@
 #ifndef ICECAP_AGENT_CORE_COMMAND_EXECUTOR_HPP
 #define ICECAP_AGENT_CORE_COMMAND_EXECUTOR_HPP
 
+#include <string>
+
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
-#include <string>
 
 namespace icecap::agent::core {
 
@@ -32,17 +33,16 @@ public:
     std::string readLuaVariable(const std::string& variableName);
 
     // ClickToMove execution
-    bool executeClickToMove(uintptr_t playerBaseAddress,
-                           const icecap::agent::v1::Position& position,
-                           icecap::agent::v1::ClickToMoveAction action,
-                           float precision);
+    bool executeClickToMove(uintptr_t playerBaseAddress, const icecap::agent::v1::Position& position,
+                            icecap::agent::v1::ClickToMoveAction action, float precision);
 
 private:
     // Game function pointers (cached for performance)
     struct GameFunctions {
         using p_Dostring = int(__cdecl*)(const char* script, const char* scriptname, int null);
         using p_GetText = char*(__cdecl*)(const char* text, std::nullptr_t unk1, std::nullptr_t unk2);
-        using p_ClickToMove = bool(__fastcall*)(void* /*this*/, int /*dummy_edx*/, int /*clickType*/, void* /*interactGuid*/, float* /*clickPos*/, float /*precision*/);
+        using p_ClickToMove = bool(__fastcall*)(void* /*this*/, int /*dummy_edx*/, int /*clickType*/,
+                                                void* /*interactGuid*/, float* /*clickPos*/, float /*precision*/);
 
         static p_Dostring Dostring;
         static p_GetText GetText;

@@ -1,6 +1,7 @@
-#include <icecap/agent/transport/TcpServer.hpp>
-#include <icecap/agent/logging.hpp>
 #include <vector>
+
+#include <icecap/agent/logging.hpp>
+#include <icecap/agent/transport/TcpServer.hpp>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -44,8 +45,7 @@ bool TcpServer::start(unsigned short port) {
 
     // Set socket to reuse address
     int opt = 1;
-    setsockopt(m_listenerSocket, SOL_SOCKET, SO_REUSEADDR,
-               reinterpret_cast<const char*>(&opt), sizeof(opt));
+    setsockopt(m_listenerSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&opt), sizeof(opt));
 
     // Bind socket
     sockaddr_in addr{};
@@ -121,8 +121,7 @@ bool TcpServer::sendData(SOCKET clientSocket, const char* data, size_t length) {
 
     int totalSent = 0;
     while (totalSent < static_cast<int>(length)) {
-        int sent = send(clientSocket, data + totalSent,
-                       static_cast<int>(length - totalSent), 0);
+        int sent = send(clientSocket, data + totalSent, static_cast<int>(length - totalSent), 0);
         if (sent == SOCKET_ERROR) {
             if (m_errorCallback) {
                 m_errorCallback("send() failed: " + std::to_string(WSAGetLastError()));
@@ -176,8 +175,7 @@ void TcpServer::handleClient(SOCKET clientSocket) {
     std::vector<char> buffer(4096);
 
     while (m_running.load()) {
-        int received = recv(clientSocket, buffer.data(),
-                          static_cast<int>(buffer.size()), 0);
+        int received = recv(clientSocket, buffer.data(), static_cast<int>(buffer.size()), 0);
 
         if (received <= 0) {
             if (received == 0) {

@@ -1,10 +1,11 @@
 #ifndef ICECAP_AGENT_HOOKS_HOOK_REGISTRY_HPP
 #define ICECAP_AGENT_HOOKS_HOOK_REGISTRY_HPP
 
-#include "../interfaces/IHookRegistry.hpp"
-#include <vector>
 #include <memory>
 #include <unordered_map>
+#include <vector>
+
+#include "../interfaces/IHookRegistry.hpp"
 
 namespace icecap::agent::hooks {
 

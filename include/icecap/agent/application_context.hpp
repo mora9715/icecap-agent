@@ -2,14 +2,17 @@
 #define ICECAP_AGENT_APPLICATION_CONTEXT_HPP
 
 #include <winsock2.h>
-#include <memory>
+
 #include <atomic>
-#include <queue>
+#include <memory>
 #include <mutex>
-#include "transport/NetworkManager.hpp"
-#include "interfaces/IApplicationContext.hpp"
+#include <queue>
+
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
+
+#include "interfaces/IApplicationContext.hpp"
+#include "transport/NetworkManager.hpp"
 
 namespace icecap::agent {
 

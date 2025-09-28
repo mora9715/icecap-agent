@@ -1,9 +1,10 @@
 #ifndef ICECAP_AGENT_CORE_EVENT_PUBLISHER_HPP
 #define ICECAP_AGENT_CORE_EVENT_PUBLISHER_HPP
 
+#include <string>
+
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
-#include <string>
 
 namespace icecap::agent::core {
 
@@ -20,14 +21,11 @@ public:
     ~EventPublisher() = default;
 
     // Create event for successful Lua variable read
-    static OutgoingMessage createLuaVariableReadEvent(
-        const IncomingMessage& originalCommand,
-        const std::string& result);
+    static OutgoingMessage createLuaVariableReadEvent(const IncomingMessage& originalCommand,
+                                                      const std::string& result);
 
     // Create generic error event
-    static OutgoingMessage createErrorEvent(
-        const IncomingMessage& originalCommand,
-        const std::string& errorMessage);
+    static OutgoingMessage createErrorEvent(const IncomingMessage& originalCommand, const std::string& errorMessage);
 
     // Generate unique event ID
     static std::string generateEventId();

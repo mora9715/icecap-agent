@@ -1,8 +1,8 @@
 #ifndef ICECAP_AGENT_INTERFACES_INETWORK_PROTOCOL_HPP
 #define ICECAP_AGENT_INTERFACES_INETWORK_PROTOCOL_HPP
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace icecap::agent::interfaces {
 

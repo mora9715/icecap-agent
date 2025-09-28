@@ -1,6 +1,7 @@
+#include <ranges>
+
 #include <icecap/agent/hooks/HookRegistry.hpp>
 #include <icecap/agent/logging.hpp>
-#include <ranges>
 
 namespace icecap::agent::hooks {
 
@@ -44,8 +45,8 @@ bool HookRegistry::installAllHooks() {
         }
     }
 
-    LOG_INFO("HookRegistry: Successfully installed " + std::to_string(successCount) +
-             " out of " + std::to_string(m_hooks.size()) + " hooks");
+    LOG_INFO("HookRegistry: Successfully installed " + std::to_string(successCount) + " out of " +
+             std::to_string(m_hooks.size()) + " hooks");
 
     return allSuccessful;
 }
@@ -57,7 +58,7 @@ bool HookRegistry::uninstallAllHooks() {
     LOG_INFO("HookRegistry: Uninstalling " + std::to_string(m_hooks.size()) + " hooks");
 
     // Uninstall in reverse order (LIFO)
-    for (const auto & hook : std::ranges::reverse_view(m_hooks)) {
+    for (const auto& hook : std::ranges::reverse_view(m_hooks)) {
         if (hook->uninstall()) {
             successCount++;
         } else {
@@ -66,8 +67,8 @@ bool HookRegistry::uninstallAllHooks() {
         }
     }
 
-    LOG_INFO("HookRegistry: Successfully uninstalled " + std::to_string(successCount) +
-             " out of " + std::to_string(m_hooks.size()) + " hooks");
+    LOG_INFO("HookRegistry: Successfully uninstalled " + std::to_string(successCount) + " out of " +
+             std::to_string(m_hooks.size()) + " hooks");
 
     return allSuccessful;
 }

@@ -1,16 +1,18 @@
 #ifndef ICECAP_AGENT_TRANSPORT_NETWORK_MANAGER_HPP
 #define ICECAP_AGENT_TRANSPORT_NETWORK_MANAGER_HPP
 
-#include <memory>
-#include <string>
-#include <queue>
-#include <mutex>
 #include <atomic>
-#include "TcpServer.hpp"
-#include "ProtocolHandler.hpp"
-#include "../interfaces/IMessageHandler.hpp"
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <string>
+
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
+
+#include "../interfaces/IMessageHandler.hpp"
+#include "ProtocolHandler.hpp"
+#include "TcpServer.hpp"
 
 namespace icecap::agent::transport {
 
@@ -33,11 +35,8 @@ public:
     NetworkManager& operator=(NetworkManager&&) = delete;
 
     // Initialize and start the network services
-    bool startServer(std::queue<IncomingMessage>& inbox,
-                    std::queue<OutgoingMessage>& outbox,
-                    unsigned short port,
-                    std::mutex& inboxMutex,
-                    std::mutex& outboxMutex);
+    bool startServer(std::queue<IncomingMessage>& inbox, std::queue<OutgoingMessage>& outbox, unsigned short port,
+                     std::mutex& inboxMutex, std::mutex& outboxMutex);
 
     // Stop the network services
     void stopServer();

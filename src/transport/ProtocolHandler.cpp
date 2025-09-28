@@ -1,5 +1,6 @@
-#include <icecap/agent/transport/ProtocolHandler.hpp>
 #include <cstdint>
+
+#include <icecap/agent/transport/ProtocolHandler.hpp>
 
 namespace icecap::agent::transport {
 
@@ -9,10 +10,8 @@ bool ProtocolHandler::extractFrame(std::string& buffer, std::string& frame) {
     }
 
     // Extract big-endian 4-byte length
-    uint32_t len = (static_cast<unsigned char>(buffer[0]) << 24) |
-                   (static_cast<unsigned char>(buffer[1]) << 16) |
-                   (static_cast<unsigned char>(buffer[2]) << 8)  |
-                   (static_cast<unsigned char>(buffer[3]));
+    uint32_t len = (static_cast<unsigned char>(buffer[0]) << 24) | (static_cast<unsigned char>(buffer[1]) << 16) |
+                   (static_cast<unsigned char>(buffer[2]) << 8) | (static_cast<unsigned char>(buffer[3]));
 
     if (buffer.size() < 4u + len) {
         return false;

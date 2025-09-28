@@ -1,9 +1,9 @@
 #ifndef ICECAP_AGENT_INTERFACES_IHOOK_REGISTRY_HPP
 #define ICECAP_AGENT_INTERFACES_IHOOK_REGISTRY_HPP
 
-#include <string>
 #include <functional>
 #include <memory>
+#include <string>
 
 namespace icecap::agent::interfaces {
 

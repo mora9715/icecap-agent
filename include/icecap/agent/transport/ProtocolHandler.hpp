@@ -1,9 +1,10 @@
 #ifndef ICECAP_AGENT_TRANSPORT_PROTOCOL_HANDLER_HPP
 #define ICECAP_AGENT_TRANSPORT_PROTOCOL_HANDLER_HPP
 
-#include "../interfaces/INetworkProtocol.hpp"
-#include <string>
 #include <functional>
+#include <string>
+
+#include "../interfaces/INetworkProtocol.hpp"
 
 namespace icecap::agent::transport {
 

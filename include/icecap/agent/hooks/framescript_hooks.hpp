@@ -4,7 +4,7 @@
 namespace icecap::agent::hooks {
 
 // Function pointer for the original FrameScript__SignalEvent
-using p_FrameScriptSignalEvent = void (__cdecl*)(int eventId, const char* fmt, int argsBase);
+using p_FrameScriptSignalEvent = void(__cdecl*)(int eventId, const char* fmt, int argsBase);
 extern p_FrameScriptSignalEvent g_OriginalFrameScriptSignalEvent;
 
 // Hooked function declaration

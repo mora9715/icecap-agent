@@ -1,12 +1,11 @@
-#include <icecap/agent/core/MessageProcessor.hpp>
 #include <icecap/agent/core/CommandExecutor.hpp>
 #include <icecap/agent/core/EventPublisher.hpp>
+#include <icecap/agent/core/MessageProcessor.hpp>
 #include <icecap/agent/logging.hpp>
 
 namespace icecap::agent::core {
 
-MessageProcessor::MessageProcessor(interfaces::IApplicationContext* context)
-    : m_context(context) {
+MessageProcessor::MessageProcessor(interfaces::IApplicationContext* context) : m_context(context) {
     if (!m_context) {
         throw std::invalid_argument("MessageProcessor requires a valid IApplicationContext");
     }
@@ -18,9 +17,8 @@ void MessageProcessor::processCommand(const IncomingMessage& command) {
         return;
     }
 
-    LOG_DEBUG("MessageProcessor: Processing command with ID '" + command.id() +
-             "', operation_id '" + command.operation_id() +
-             "', type: " + std::to_string(static_cast<int>(command.type())));
+    LOG_DEBUG("MessageProcessor: Processing command with ID '" + command.id() + "', operation_id '" +
+              command.operation_id() + "', type: " + std::to_string(static_cast<int>(command.type())));
 
     // Route command to appropriate handler
     switch (command.type()) {
@@ -37,9 +35,8 @@ void MessageProcessor::processCommand(const IncomingMessage& command) {
             break;
 
         default:
-            LOG_WARN("MessageProcessor: Unknown command type " +
-                    std::to_string(static_cast<int>(command.type())) +
-                    " for message ID " + command.id());
+            LOG_WARN("MessageProcessor: Unknown command type " + std::to_string(static_cast<int>(command.type())) +
+                     " for message ID " + command.id());
             break;
     }
 }
@@ -97,8 +94,7 @@ void MessageProcessor::handleLuaReadVariableCommand(const IncomingMessage& comma
     }
 
     const auto& payload = command.lua_read_variable_payload();
-    LOG_INFO("MessageProcessor: Reading Lua variable '" + payload.variable_name() +
-            "' for message ID " + command.id());
+    LOG_INFO("MessageProcessor: Reading Lua variable '" + payload.variable_name() + "' for message ID " + command.id());
 
     CommandExecutor executor;
     std::string result = executor.readLuaVariable(payload.variable_name());
@@ -106,14 +102,13 @@ void MessageProcessor::handleLuaReadVariableCommand(const IncomingMessage& comma
     // Create and enqueue response event
     OutgoingMessage event = EventPublisher::createLuaVariableReadEvent(command, result);
 
-    LOG_DEBUG("MessageProcessor: Created event with ID '" + event.id() +
-             "', operation_id '" + event.operation_id() +
-             "' for command ID '" + command.id() + "'");
+    LOG_DEBUG("MessageProcessor: Created event with ID '" + event.id() + "', operation_id '" + event.operation_id() +
+              "' for command ID '" + command.id() + "'");
 
     enqueueEvent(event);
 
-    LOG_INFO("MessageProcessor: Successfully read variable '" + payload.variable_name() +
-            "' for message ID " + command.id());
+    LOG_INFO("MessageProcessor: Successfully read variable '" + payload.variable_name() + "' for message ID " +
+             command.id());
 }
 
 void MessageProcessor::handleClickToMoveCommand(const IncomingMessage& command) {
@@ -127,7 +122,8 @@ void MessageProcessor::handleClickToMoveCommand(const IncomingMessage& command) 
 
     const uintptr_t playerBaseAddress = payload.player_base_address();
     if (playerBaseAddress == 0) {
-        LOG_ERROR("MessageProcessor: ClickToMove command has invalid player_base_address (0) for message ID " + command.id());
+        LOG_ERROR("MessageProcessor: ClickToMove command has invalid player_base_address (0) for message ID " +
+                  command.id());
         return;
     }
 
@@ -137,11 +133,8 @@ void MessageProcessor::handleClickToMoveCommand(const IncomingMessage& command) 
     }
 
     CommandExecutor executor;
-    bool success = executor.executeClickToMove(
-        playerBaseAddress,
-        payload.position(),
-        payload.action(),
-        payload.precision());
+    bool success =
+        executor.executeClickToMove(playerBaseAddress, payload.position(), payload.action(), payload.precision());
 
     if (success) {
         LOG_INFO("MessageProcessor: ClickToMove successful for message ID " + command.id());

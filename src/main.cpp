@@ -1,18 +1,18 @@
-#include <winsock2.h>
 #include <windows.h>
-#include <memory>
+#include <winsock2.h>
+
 #include <atomic>
+#include <memory>
+
 #include <icecap/agent/application_context.hpp>
-#include <icecap/agent/raii_wrappers.hpp>
 #include <icecap/agent/logging.hpp>
+#include <icecap/agent/raii_wrappers.hpp>
 #include <icecap/agent/shared_state.hpp>
 
 // Global application context (managed via RAII)
 static std::unique_ptr<icecap::agent::ApplicationContext> g_appContext;
 
-
-void Cleanup()
-{
+void Cleanup() {
     static std::atomic<bool> cleanup_called{false};
 
     // Prevent multiple cleanup calls
@@ -37,14 +37,12 @@ void Cleanup()
 
         // Shutdown logging last
         icecap::agent::Logger::getInstance().shutdown();
-    }
-    catch (...) {
+    } catch (...) {
         // Swallow any exceptions during cleanup to prevent crashes
     }
 }
 
-DWORD WINAPI MainThread(const LPVOID hMod)
-{
+DWORD WINAPI MainThread(const LPVOID hMod) {
     const auto hModule = static_cast<HMODULE>(hMod);
 
     try {
@@ -89,8 +87,7 @@ DWORD WINAPI MainThread(const LPVOID hMod)
     return 0;
 }
 
-DWORD WINAPI CleanupThread(const LPVOID hMod)
-{
+DWORD WINAPI CleanupThread(const LPVOID hMod) {
     const auto hModule = static_cast<HMODULE>(hMod);
 
     // Wait for main thread to initialize logging and application context
@@ -129,8 +126,7 @@ DWORD WINAPI CleanupThread(const LPVOID hMod)
     // Track DELETE key state for edge detection
     static bool deleteKeyWasPressed = false;
 
-    while (g_appContext && g_appContext->isRunning())
-    {
+    while (g_appContext && g_appContext->isRunning()) {
         // Check DELETE key state
         bool deleteKeyIsPressed = (GetAsyncKeyState(VK_DELETE) & 0x8000) != 0;
 
@@ -159,10 +155,8 @@ DWORD WINAPI CleanupThread(const LPVOID hMod)
     return 0;
 }
 
-bool APIENTRY DllMain(const HMODULE hMod, const DWORD reason, LPVOID)
-{
-    if (reason == DLL_PROCESS_ATTACH)
-    {
+bool APIENTRY DllMain(const HMODULE hMod, const DWORD reason, LPVOID) {
+    if (reason == DLL_PROCESS_ATTACH) {
         // Create threads
         HANDLE mainThread = CreateThread(nullptr, 0, MainThread, hMod, 0, nullptr);
         HANDLE cleanupThread = CreateThread(nullptr, 0, CleanupThread, hMod, 0, nullptr);
@@ -175,15 +169,12 @@ bool APIENTRY DllMain(const HMODULE hMod, const DWORD reason, LPVOID)
         if (cleanupThread && cleanupThread != INVALID_HANDLE_VALUE) {
             CloseHandle(cleanupThread);
         }
-    }
-    else if (reason == DLL_PROCESS_DETACH)
-    {
+    } else if (reason == DLL_PROCESS_DETACH) {
         // Process is terminating - perform emergency cleanup
         // This happens when the game closes without our cleanup thread being triggered
         try {
             Cleanup();
-        }
-        catch (...) {
+        } catch (...) {
             // Ignore any exceptions during emergency cleanup
         }
     }

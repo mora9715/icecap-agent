@@ -1,8 +1,8 @@
 #ifndef ICECAP_AGENT_RAII_WRAPPERS_HPP
 #define ICECAP_AGENT_RAII_WRAPPERS_HPP
 
-#include <windows.h>
 #include <d3d9.h>
+#include <windows.h>
 
 namespace icecap::agent::raii {
 
@@ -39,9 +39,15 @@ public:
         return *this;
     }
 
-    [[nodiscard]] IDirect3D9* get() const { return m_d3d; }
-    IDirect3D9* operator->() const { return m_d3d; }
-    explicit operator bool() const { return m_d3d != nullptr; }
+    [[nodiscard]] IDirect3D9* get() const {
+        return m_d3d;
+    }
+    IDirect3D9* operator->() const {
+        return m_d3d;
+    }
+    explicit operator bool() const {
+        return m_d3d != nullptr;
+    }
 
 private:
     IDirect3D9* m_d3d;
@@ -80,9 +86,15 @@ public:
         return *this;
     }
 
-    [[nodiscard]] IDirect3DDevice9* get() const { return m_device; }
-    IDirect3DDevice9* operator->() const { return m_device; }
-    explicit operator bool() const { return m_device != nullptr; }
+    [[nodiscard]] IDirect3DDevice9* get() const {
+        return m_device;
+    }
+    IDirect3DDevice9* operator->() const {
+        return m_device;
+    }
+    explicit operator bool() const {
+        return m_device != nullptr;
+    }
 
 private:
     IDirect3DDevice9* m_device;
@@ -121,8 +133,12 @@ public:
         return *this;
     }
 
-    [[nodiscard]] HANDLE get() const { return m_handle; }
-    explicit operator bool() const { return m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE; }
+    [[nodiscard]] HANDLE get() const {
+        return m_handle;
+    }
+    explicit operator bool() const {
+        return m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE;
+    }
 
     // Wait for thread with timeout
     [[nodiscard]] DWORD wait(const DWORD timeout = INFINITE) const {

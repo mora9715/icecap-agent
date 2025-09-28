@@ -1,9 +1,10 @@
-#include <icecap/agent/hooks/framescript_hooks.hpp>
+#include <windows.h>
 
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
-#include <windows.h>
+
+#include <icecap/agent/hooks/framescript_hooks.hpp>
 
 namespace icecap::agent::hooks {
 
@@ -22,7 +23,8 @@ static bool readVal(uintptr_t addr, T& out) {
 }
 
 static std::string readCStringBounded(uintptr_t addr, size_t maxLen = 1024) {
-    if (addr == 0) return "(null)";
+    if (addr == 0)
+        return "(null)";
     std::string result;
     result.reserve(64);
     const size_t chunk = 128;
@@ -31,8 +33,9 @@ static std::string readCStringBounded(uintptr_t addr, size_t maxLen = 1024) {
     size_t total = 0;
     for (;;) {
         SIZE_T bytesRead = 0;
-        if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(addr + total),
-                               buf.data(), buf.size(), &bytesRead) || bytesRead == 0) {
+        if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(addr + total), buf.data(), buf.size(),
+                               &bytesRead) ||
+            bytesRead == 0) {
             break;
         }
         for (SIZE_T i = 0; i < bytesRead && total < maxLen; ++i, ++total) {
@@ -55,9 +58,10 @@ static std::string readCStringBounded(uintptr_t addr, size_t maxLen = 1024) {
 
 // Reconstruct a string by walking fmt and reading args from the custom stack layout.
 static std::string formatCustomArgs(const char* fmt, int argsBase) {
-    if (!fmt) return "";
+    if (!fmt)
+        return "";
 
-    uintptr_t i32  = static_cast<uintptr_t>(static_cast<uint32_t>(argsBase)) - 4;
+    uintptr_t i32 = static_cast<uintptr_t>(static_cast<uint32_t>(argsBase)) - 4;
     uintptr_t base = static_cast<uintptr_t>(static_cast<uint32_t>(argsBase)) - 8;
 
     std::string out;
@@ -67,7 +71,8 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
             continue;
         }
         ++p;
-        if (!*p) break;
+        if (!*p)
+            break;
 
         switch (*p) {
             case 'd': {
@@ -77,7 +82,7 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
                 } else {
                     out += "<bad-int>";
                 }
-                i32  += 4;
+                i32 += 4;
                 base += 4;
                 break;
             }
@@ -88,7 +93,7 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
                 } else {
                     out += "<bad-uint>";
                 }
-                i32  += 4;
+                i32 += 4;
                 base += 4;
                 break;
             }
@@ -99,7 +104,7 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
                 } else {
                     out += "<bad-bool>";
                 }
-                i32  += 4;
+                i32 += 4;
                 base += 4;
                 break;
             }
@@ -112,7 +117,7 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
                 } else {
                     out += "<bad-double>";
                 }
-                i32  += 8;
+                i32 += 8;
                 base += 8;
                 break;
             }
@@ -123,7 +128,7 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
                 } else {
                     out += "<bad-str*>";
                 }
-                i32  += 4;
+                i32 += 4;
                 base += 4;
                 break;
             }
@@ -142,8 +147,7 @@ static std::string formatCustomArgs(const char* fmt, int argsBase) {
 }
 
 // Hooked FrameScript__SignalEvent function
-void __cdecl HookedFrameScriptSignalEvent(int eventid, const char* fmt, int argsBase)
-{
+void __cdecl HookedFrameScriptSignalEvent(int eventid, const char* fmt, int argsBase) {
     // Safely reconstruct the formatted text (currently unused)
     (void)formatCustomArgs(fmt, argsBase);
 

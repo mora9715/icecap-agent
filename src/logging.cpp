@@ -1,11 +1,14 @@
 #include "icecap/agent/logging.hpp"
-#include <spdlog/spdlog.h>
+
+#include <windows.h>
+
+#include <atomic>
+#include <chrono>
+#include <filesystem>
+
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <windows.h>
-#include <filesystem>
-#include <chrono>
-#include <atomic>
+#include <spdlog/spdlog.h>
 
 namespace icecap::agent {
 
@@ -27,8 +30,7 @@ void Logger::initialize(const std::string& logFilePath) {
         std::filesystem::create_directories(logPath.parent_path());
 
         // Create rotating file sink (max 5MB per file, keep 3 files)
-        auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-            actualLogPath, 1024 * 1024 * 5, 3);
+        auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(actualLogPath, 1024 * 1024 * 5, 3);
         file_sink->set_level(spdlog::level::trace);
 
         m_logger = std::make_shared<spdlog::logger>("icecap-agent", file_sink);
@@ -53,15 +55,11 @@ void Logger::initialize(const std::string& logFilePath) {
         m_initialized = true;
 
         LOG_INFO("Logging system initialized");
-    }
-    catch (const std::exception& ex) {
+    } catch (const std::exception& ex) {
         // Fallback to MessageBox if logging initialization fails
         std::string error = "Failed to initialize logging system: " + std::string(ex.what()) +
-                           "\nAttempted log path: " + (logFilePath.empty() ? getDefaultLogPath() : logFilePath);
-        MessageBoxA(nullptr,
-            error.c_str(),
-            "Icecap Agent - Logging Error",
-            MB_OK | MB_ICONERROR);
+                            "\nAttempted log path: " + (logFilePath.empty() ? getDefaultLogPath() : logFilePath);
+        MessageBoxA(nullptr, error.c_str(), "Icecap Agent - Logging Error", MB_OK | MB_ICONERROR);
     }
 }
 
@@ -81,8 +79,7 @@ void Logger::shutdown() {
             m_logger.reset();
             m_initialized = false;
         }
-    }
-    catch (...) {
+    } catch (...) {
         // Ignore any exceptions during shutdown
     }
 }
@@ -141,5 +138,4 @@ void Logger::critical(const std::string& message) {
     }
 }
 
-
-}
+} // namespace icecap::agent

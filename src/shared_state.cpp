@@ -1,6 +1,7 @@
-#include <icecap/agent/shared_state.hpp>
-#include <icecap/agent/application_context.hpp>
 #include <atomic>
+
+#include <icecap/agent/application_context.hpp>
+#include <icecap/agent/shared_state.hpp>
 
 namespace icecap::agent {
 

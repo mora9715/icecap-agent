@@ -1,10 +1,12 @@
 #ifndef ICECAP_AGENT_INTERFACES_IAPPLICATION_CONTEXT_HPP
 #define ICECAP_AGENT_INTERFACES_IAPPLICATION_CONTEXT_HPP
 
-#include <winsock2.h>
 #include <windows.h>
-#include <queue>
+#include <winsock2.h>
+
 #include <mutex>
+#include <queue>
+
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
 

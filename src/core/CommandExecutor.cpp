@@ -57,10 +57,8 @@ std::string CommandExecutor::readLuaVariable(const std::string& variableName) {
     }
 }
 
-bool CommandExecutor::executeClickToMove(uintptr_t playerBaseAddress,
-                                        const icecap::agent::v1::Position& position,
-                                        icecap::agent::v1::ClickToMoveAction action,
-                                        float precision) {
+bool CommandExecutor::executeClickToMove(uintptr_t playerBaseAddress, const icecap::agent::v1::Position& position,
+                                         icecap::agent::v1::ClickToMoveAction action, float precision) {
     if (playerBaseAddress == 0) {
         LOG_ERROR("CommandExecutor: Invalid player base address (0)");
         return false;
@@ -69,10 +67,8 @@ bool CommandExecutor::executeClickToMove(uintptr_t playerBaseAddress,
     try {
         float pos[3] = {position.x(), position.y(), position.z()};
 
-        LOG_DEBUG("CommandExecutor: ClickToMove position: (" +
-                 std::to_string(pos[0]) + ", " +
-                 std::to_string(pos[1]) + ", " +
-                 std::to_string(pos[2]) + ")");
+        LOG_DEBUG("CommandExecutor: ClickToMove position: (" + std::to_string(pos[0]) + ", " + std::to_string(pos[1]) +
+                  ", " + std::to_string(pos[2]) + ")");
 
         // Provide a non-null GUID buffer (32 bytes = 2x UInt128), zero-initialized
         unsigned char guidBuf[32] = {0};
@@ -83,12 +79,7 @@ bool CommandExecutor::executeClickToMove(uintptr_t playerBaseAddress,
 
         // Perform the call (ECX=this via __fastcall)
         bool result = GameFunctions::CGPlayer_C__ClickToMove(
-            reinterpret_cast<void*>(playerBaseAddress),
-            0 /*dummy EDX*/,
-            actionValue,
-            interactGuid,
-            pos,
-            precision);
+            reinterpret_cast<void*>(playerBaseAddress), 0 /*dummy EDX*/, actionValue, interactGuid, pos, precision);
 
         if (result) {
             LOG_DEBUG("CommandExecutor: ClickToMove successful");
