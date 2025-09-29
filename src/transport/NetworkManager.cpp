@@ -69,6 +69,14 @@ void NetworkManager::stopServer() {
     LOG_INFO("NetworkManager: Stopping server");
     m_running.store(false);
 
+    // Clear callbacks first to prevent use-after-free when TcpServer thread shuts down
+    if (m_tcpServer) {
+        m_tcpServer->setDataCallback(nullptr);
+        m_tcpServer->setClientConnectedCallback(nullptr);
+        m_tcpServer->setClientDisconnectedCallback(nullptr);
+        m_tcpServer->setErrorCallback(nullptr);
+    }
+
     // Stop and join the outgoing message thread
     if (m_outgoingMessageThread.joinable()) {
         LOG_DEBUG("NetworkManager: Waiting for outgoing message thread to finish");

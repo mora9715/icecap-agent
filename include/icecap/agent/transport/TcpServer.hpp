@@ -7,6 +7,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 
 namespace icecap::agent::transport {
 
@@ -63,6 +64,8 @@ private:
 
     std::atomic<bool> m_running{false};
     SOCKET m_listenerSocket{INVALID_SOCKET};
+    SOCKET m_clientSocket{INVALID_SOCKET};
+    std::mutex m_clientSocketMutex;
     HANDLE m_serverThread{nullptr};
     unsigned short m_port{0};
 

@@ -97,6 +97,15 @@ void TcpServer::stop() {
     LOG_INFO("Stopping TCP Server on port " + std::to_string(m_port));
     m_running.store(false);
 
+    // Shutdown client socket to unblock recv() in handleClient()
+    // shutdown() forces recv() to return immediately
+    {
+        std::lock_guard<std::mutex> lock(m_clientSocketMutex);
+        if (m_clientSocket != INVALID_SOCKET) {
+            shutdown(m_clientSocket, SD_BOTH);
+        }
+    }
+
     // Close listener socket to unblock accept()
     if (m_listenerSocket != INVALID_SOCKET) {
         closesocket(m_listenerSocket);
@@ -108,6 +117,15 @@ void TcpServer::stop() {
         WaitForSingleObject(m_serverThread, 5000); // 5 second timeout
         CloseHandle(m_serverThread);
         m_serverThread = nullptr;
+    }
+
+    // Now close the client socket after thread has finished
+    {
+        std::lock_guard<std::mutex> lock(m_clientSocketMutex);
+        if (m_clientSocket != INVALID_SOCKET) {
+            closesocket(m_clientSocket);
+            m_clientSocket = INVALID_SOCKET;
+        }
     }
 
     WSACleanup();
@@ -153,6 +171,12 @@ void TcpServer::serverThreadMain() {
             break;
         }
 
+        // Store client socket for potential shutdown
+        {
+            std::lock_guard<std::mutex> lock(m_clientSocketMutex);
+            m_clientSocket = clientSocket;
+        }
+
         LOG_INFO("Client connected");
         if (m_clientConnectedCallback) {
             m_clientConnectedCallback(clientSocket);
@@ -166,6 +190,11 @@ void TcpServer::serverThreadMain() {
             m_clientDisconnectedCallback(clientSocket);
         }
         closesocket(clientSocket);
+
+        {
+            std::lock_guard<std::mutex> lock(m_clientSocketMutex);
+            m_clientSocket = INVALID_SOCKET;
+        }
     }
 
     LOG_INFO("TCP Server thread finished");
