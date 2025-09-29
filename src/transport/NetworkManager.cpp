@@ -1,3 +1,6 @@
+#include <chrono>
+#include <thread>
+
 #include <google/protobuf/util/json_util.h>
 
 #include <icecap/agent/logging.hpp>
@@ -42,6 +45,18 @@ bool NetworkManager::startServer(std::queue<IncomingMessage>& inbox, std::queue<
     }
 
     m_running.store(true);
+
+    // Start background thread for processing outgoing messages
+    try {
+        m_outgoingMessageThread = std::thread(&NetworkManager::outgoingMessageThreadMain, this);
+        LOG_DEBUG("NetworkManager: Started outgoing message processing thread");
+    } catch (const std::exception& e) {
+        LOG_ERROR("NetworkManager: Failed to start outgoing message thread: " + std::string(e.what()));
+        m_running.store(false);
+        m_tcpServer->stop();
+        return false;
+    }
+
     LOG_INFO("NetworkManager: Started on port " + std::to_string(port));
     return true;
 }
@@ -53,6 +68,13 @@ void NetworkManager::stopServer() {
 
     LOG_INFO("NetworkManager: Stopping server");
     m_running.store(false);
+
+    // Stop and join the outgoing message thread
+    if (m_outgoingMessageThread.joinable()) {
+        LOG_DEBUG("NetworkManager: Waiting for outgoing message thread to finish");
+        m_outgoingMessageThread.join();
+        LOG_DEBUG("NetworkManager: Outgoing message thread finished");
+    }
 
     if (m_tcpServer) {
         m_tcpServer->stop();
@@ -86,9 +108,6 @@ void NetworkManager::onDataReceived(const char* data, size_t length) {
     while (m_protocolHandler->extractFrame(m_receiveBuffer, frame)) {
         onMessageReceived(frame);
     }
-
-    // Process any pending outgoing messages
-    processOutgoingMessages();
 }
 
 void NetworkManager::onClientConnected(SOCKET clientSocket) {
@@ -169,6 +188,31 @@ void NetworkManager::processOutgoingMessages() {
 
         localQueue.pop();
     }
+}
+
+void NetworkManager::outgoingMessageThreadMain() {
+    LOG_DEBUG("NetworkManager: Outgoing message thread started");
+
+    while (m_running.load()) {
+        try {
+            // Process outgoing messages if we have a connected client
+            if (m_currentClient != INVALID_SOCKET) {
+                processOutgoingMessages();
+            }
+
+            // Sleep for a short time to avoid busy waiting
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        } catch (const std::exception& e) {
+            LOG_ERROR("NetworkManager: Exception in outgoing message thread: " + std::string(e.what()));
+            // Continue running even if there's an error
+        } catch (...) {
+            LOG_ERROR("NetworkManager: Unknown exception in outgoing message thread");
+            // Continue running even if there's an error
+        }
+    }
+
+    LOG_DEBUG("NetworkManager: Outgoing message thread finished");
 }
 
 } // namespace icecap::agent::transport

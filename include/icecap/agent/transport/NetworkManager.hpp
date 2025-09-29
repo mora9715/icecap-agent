@@ -6,6 +6,7 @@
 #include <mutex>
 #include <queue>
 #include <string>
+#include <thread>
 
 #include "icecap/agent/v1/commands.pb.h"
 #include "icecap/agent/v1/events.pb.h"
@@ -44,6 +45,9 @@ public:
     // Check if server is running
     bool isRunning() const;
 
+    // Manually trigger processing of outgoing messages
+    void processOutgoingMessages();
+
 private:
     // Handle incoming raw data from TCP server
     void onDataReceived(const char* data, size_t length);
@@ -55,8 +59,8 @@ private:
     void onMessageReceived(const std::string& message);
     void onProtocolError(const std::string& error);
 
-    // Process outgoing messages
-    void processOutgoingMessages();
+    // Background thread for processing outgoing messages
+    void outgoingMessageThreadMain();
 
     std::unique_ptr<TcpServer> m_tcpServer;
     std::unique_ptr<ProtocolHandler> m_protocolHandler;
@@ -73,6 +77,9 @@ private:
     // Protocol state
     std::string m_receiveBuffer;
     std::atomic<bool> m_running{false};
+
+    // Background thread for outgoing message processing
+    std::thread m_outgoingMessageThread;
 };
 
 } // namespace icecap::agent::transport

@@ -2,6 +2,7 @@
 
 #include "MinHook.h"
 
+#include <icecap/agent/application_context.hpp>
 #include <icecap/agent/core/MessageProcessor.hpp>
 #include <icecap/agent/hooks/D3D9Hook.hpp>
 #include <icecap/agent/logging.hpp>

@@ -78,13 +78,15 @@ void MessageProcessor::handleLuaExecuteCommand(const IncomingMessage& command) {
     bool success = executor.executeLuaCode(payload.executable_code(), "source");
 
     if (success) {
-        LOG_INFO("MessageProcessor: Lua execution successful for message ID " + command.id());
+        LOG_INFO("MessageProcessor: Lua execution successful for message ID " + command.id() + " operation ID " +
+                 command.operation_id());
+        OutgoingMessage event = EventPublisher::createSuccessEvent(command);
+        enqueueEvent(event);
     } else {
         LOG_ERROR("MessageProcessor: Lua execution failed for message ID " + command.id());
+        OutgoingMessage event = EventPublisher::createErrorEvent(command, "Lua execution failed");
+        enqueueEvent(event);
     }
-
-    // Note: LUA_EXECUTE typically doesn't generate response events unless there's an error
-    // If error events are needed, they can be added here
 }
 
 void MessageProcessor::handleLuaReadVariableCommand(const IncomingMessage& command) {
@@ -138,12 +140,13 @@ void MessageProcessor::handleClickToMoveCommand(const IncomingMessage& command) 
 
     if (success) {
         LOG_INFO("MessageProcessor: ClickToMove successful for message ID " + command.id());
+        OutgoingMessage event = EventPublisher::createSuccessEvent(command);
+        enqueueEvent(event);
     } else {
         LOG_WARN("MessageProcessor: ClickToMove failed for message ID " + command.id());
+        OutgoingMessage event = EventPublisher::createErrorEvent(command, "ClickToMove execution failed");
+        enqueueEvent(event);
     }
-
-    // Note: ClickToMove typically doesn't generate response events unless there's an error
-    // If status events are needed, they can be added here
 }
 
 void MessageProcessor::enqueueEvent(const OutgoingMessage& event) {

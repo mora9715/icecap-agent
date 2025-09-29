@@ -24,14 +24,16 @@ OutgoingMessage EventPublisher::createErrorEvent(const IncomingMessage& original
     OutgoingMessage event;
     event.set_id(generateEventId());
     event.set_operation_id(originalCommand.operation_id());
+    event.set_type(icecap::agent::v1::EVENT_TYPE_OPERATION_FAILED);
 
-    // Note: Since EVENT_TYPE_ERROR doesn't exist in the protobuf schema,
-    // we'll use a generic event type. This method can be removed if not needed
-    // or updated when the protobuf schema includes error event types.
-    event.set_type(icecap::agent::v1::EVENT_TYPE_LUA_VARIABLE_READ);
+    return event;
+}
 
-    // Note: Error payload type not available in current protobuf schema
-    // This would need to be implemented when error events are added to the schema
+OutgoingMessage EventPublisher::createSuccessEvent(const IncomingMessage& originalCommand) {
+    OutgoingMessage event;
+    event.set_id(generateEventId());
+    event.set_operation_id(originalCommand.operation_id());
+    event.set_type(icecap::agent::v1::EVENT_TYPE_OPERATION_SUCCEEDED);
 
     return event;
 }

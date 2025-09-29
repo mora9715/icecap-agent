@@ -24,8 +24,11 @@ public:
     static OutgoingMessage createLuaVariableReadEvent(const IncomingMessage& originalCommand,
                                                       const std::string& result);
 
-    // Create generic error event
+    // Create a generic error event
     static OutgoingMessage createErrorEvent(const IncomingMessage& originalCommand, const std::string& errorMessage);
+
+    // Create a generic success event
+    static OutgoingMessage createSuccessEvent(const IncomingMessage& originalCommand);
 
     // Generate unique event ID
     static std::string generateEventId();
