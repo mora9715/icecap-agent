@@ -5,6 +5,8 @@
 #include <icecap/agent/hooks/hook_manager.hpp>
 #include <icecap/agent/logging.hpp>
 
+#include <stdexcept>
+
 namespace icecap::agent::hooks {
 
 // Global hook registry instance
