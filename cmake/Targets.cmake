@@ -68,6 +68,13 @@ set_target_properties(icecap-agent PROPERTIES
     LINK_FLAGS "-m32 -static-libgcc -static-libstdc++"
 )
 
+
+target_compile_definitions(icecap-agent PRIVATE
+    WIN32_LEAN_AND_MEAN
+    NOMINMAX
+    _WINSOCK_DEPRECATED_NO_WARNINGS
+)
+
 # Include directories
 target_include_directories(icecap-agent
     PUBLIC include
