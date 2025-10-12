@@ -1,6 +1,9 @@
 # Icecap Agent
 
-Icecap Agent is a **production-grade 32-bit injectable DLL** for World of Warcraft 3.3.5a that executes commands and publishes events as part of the Icecap ecosystem. The agent runs inside the WoW client process and communicates over a lightweight TCP protocol using Protocol Buffers.
+[![GitHub release](https://img.shields.io/github/v/release/mora9715/icecap-agent)](https://github.com/mora9715/icecap-agent/releases/latest)
+
+
+Icecap Agent is a **32-bit injectable DLL** for World of Warcraft 3.3.5a that executes commands and publishes events as part of the Icecap ecosystem. The agent runs inside the WoW client process and communicates over a lightweight TCP protocol using Protocol Buffers.
 
 **Compatible with WoW 3.3.5a build 12340 only.**
 
@@ -12,29 +15,18 @@ The agent is a simple command-event bridge that:
 
 - **Executes commands** received from the controlling system
 - **Publishes events** back to the controller
-- **Integrates seamlessly** with the Icecap ecosystem
 
 Commands and events are defined in the [icecap-contracts](https://github.com/mora9715/icecap-contracts) repository. When contracts change, this implementation adapts accordingly.
 
 ## Key Features
 
 ### Core Functionality
-- **Runtime injection** into WoW client process
 - **Embedded TCP server** on port 5050 with robust connection handling
 - **Protocol Buffers** messaging for reliable command/event communication
 - **Self-unload mechanism** via Delete key with proper edge detection
 
 ### Hook System
 - **MinHook-based** function hooking for D3D9 EndScene and FrameScript events
-
-
-## Architecture
-
-- **Language**: C++20 with modern design patterns
-- **Platform**: Windows 32-bit only
-- **Build System**: CMake with FetchContent for dependency management
-- **Core Dependencies**: MinHook, Protocol Buffers (spdlog for logging)
-- **System Dependencies**: Winsock2, Direct3D9
 
 ## Quick Start
 
