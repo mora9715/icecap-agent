@@ -1,0 +1,23 @@
+name: Build Icecap Agent
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -A Win32
+
+      - name: Build
+        run: cmake --build build --target icecap-agent --config Release
+
